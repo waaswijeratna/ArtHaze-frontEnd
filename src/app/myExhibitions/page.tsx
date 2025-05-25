@@ -1,8 +1,10 @@
+import ExhibitionForm from "@/components/exhibitions/ExhibitionForm";
 
 export default function MyExhibitions() {
   return (
-    <div className="flex justify-center items-center w-full h-full">
-        <p className="text-third">Excited to create your own exhibitions? Stay with us !</p>
+    <div className="min-h-screen p-10 bg-gray-50">
+      <h1 className="text-3xl font-bold mb-6">Create Virtual Exhibition</h1>
+      <ExhibitionForm />
     </div>
   );
 }

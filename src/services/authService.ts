@@ -56,6 +56,7 @@ export const registerUser = async (name: string, email: string, age: number, pas
   });
 
   const data = await res.json();
+  console.log("came data",data)
   if (res.ok) {
     const decodedData = decodeToken(data.token);
     if (decodedData) {
@@ -75,6 +76,7 @@ export const loginUser = async (email: string, password: string) => {
   });
 
   const data = await res.json();
+  console.log("came data",data)
   if (res.ok) {
     const decodedData = decodeToken(data.token);
     if (decodedData) {

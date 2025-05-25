@@ -6,6 +6,7 @@ import CreatePost from "@/components/CreatePost";
 import MyNavs from "@/components/MyNavs";
 // import Messages from "@/components/Messages";
 import Notices from "@/components/Notices";
+import FallingLeavesOverlay from "./FallingLeaves";
 
 export default function LayoutSwitcher({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -23,6 +24,7 @@ export default function LayoutSwitcher({ children }: { children: React.ReactNode
   // Full layout for other routes
   return (
     <div className="flex flex-col h-[100vh]">
+      <FallingLeavesOverlay />
       <div className="w-full h-[10%]">
         <Header />
       </div>

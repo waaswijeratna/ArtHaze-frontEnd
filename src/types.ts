@@ -6,3 +6,15 @@ export interface Exhibition {
     gallery: string;
     images: string[];
 }
+
+export interface Advertisements {
+    id?: string;
+    name: string;
+    description: string;
+    price: string;
+    category: string;
+    imageUrl: string;
+    userId:string;
+    contact:string;
+    createdAt:string;
+}

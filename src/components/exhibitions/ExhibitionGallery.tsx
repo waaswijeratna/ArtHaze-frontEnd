@@ -1,9 +1,22 @@
-"use client"; // Necessary for Next.js
+/* eslint-disable react-hooks/exhaustive-deps */
+"use client";
 
+import { getExhibitionDetailsById } from "@/services/exhibitionService";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader, FirstPersonControls } from 'three-stdlib';
+
+type DetailsData = {
+  _id: string;
+  name: string;
+  gallery: {
+    _id: string;
+    modelUrl: string;
+  };
+  artImages: string[];
+};
+
 
 type ImageData = {
   url: string;
@@ -17,8 +30,28 @@ export default function ExhibitionGallery() {
   const id = searchParams.get("id");
   const [activeTitle, setActiveTitle] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [details, setDetails] = useState<DetailsData | null>(null);
 
   useEffect(() => {
+    const fetchDetails = async () => {
+      try {
+        if (id) {
+          const data = await getExhibitionDetailsById(id);
+          console.log("response?",data);
+          setDetails(data);
+        }
+
+      } catch (error) {
+        console.error("Failed to load exhibitions:", error);
+      }
+    };
+
+
+    if (id) fetchDetails();
+  }, [id]);
+
+  useEffect(() => {
+
     const scene = new THREE.Scene();
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -33,7 +66,11 @@ export default function ExhibitionGallery() {
     let galleryModel: THREE.Object3D;
     let camera: THREE.PerspectiveCamera | null = null;
 
-    loader.load('/assets/threeD/test7/scene.gltf', 
+    if (!details) return;
+
+
+
+    loader.load("/assets/threeD/test7/scene.gltf", //hereeeeeeeeeeeeeeeeee
       (gltf) => {
         setIsLoading(false);
         const model = gltf.scene;
@@ -78,30 +115,18 @@ export default function ExhibitionGallery() {
 
             const frameMesh = new THREE.Mesh(frameGeometry, materials);
             frameMesh.name = name;
-            frameMesh.userData.title = imageData.title; // Store title in userData
+            frameMesh.userData.title = imageData.title;
             frameMesh.position.copy(marker.position);
             frameMesh.rotation.copy(marker.rotation);
             frameMesh.position.z += 0.1;
             scene.add(frameMesh);
           };
 
-          const imageData: ImageData[] = id === "1" ? [
-            { url: "/assets/images/frame1.jpg", title: "Mountain Landscape" },
-            { url: "/assets/images/frame2.jpg", title: "Abstract Composition" },
-            { url: "/assets/images/frame3.png", title: "Modern Art Piece" },
-            { url: "/assets/images/frame4.png", title: "Vintage Photography" },
-            { url: "/assets/images/frame5.png", title: "Digital Artwork" },
-            { url: "/assets/images/frame6.png", title: "Surreal Painting" },
-            { url: "/assets/images/frame7.png", title: "Contemporary Design" },
-          ] : [
-            { url: "/assets/images/my1.png", title: "My Artwork 1" },
-            { url: "/assets/images/frame2.jpg", title: "Classic Portrait" },
-            { url: "/assets/images/frame3.png", title: "Experimental Piece" },
-            { url: "/assets/images/frame4.png", title: "Nature Study" },
-            { url: "/assets/images/frame5.png", title: "Urban Sketch" },
-            { url: "/assets/images/frame6.png", title: "Mixed Media" },
-            { url: "/assets/images/frame7.png", title: "Concept Art" },
-          ];
+          const imageData: ImageData[] = details.artImages.map((url: string, index: number) => ({//hereeeeeeeee
+            url,
+            title: `Artwork ${index + 1}`
+          }));
+
 
           let frameIndex = 0;
           model.traverse((child) => {
