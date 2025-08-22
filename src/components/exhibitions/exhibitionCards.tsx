@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getExhibitionsWithGalleryInfo } from "@/services/exhibitionService"; // adjust path
 import UserProfileCard from "@/components/UserProfileCard"; // adjust path
+import TestExhibition from "./test-exhibition";
 
 interface ExhibitionCardData {
     _id: string;
@@ -77,6 +78,8 @@ export default function ExhibitionCards() {
                     </div>
                 ))}
             </div>
+                        <TestExhibition />
+
         </div>
     );
 }

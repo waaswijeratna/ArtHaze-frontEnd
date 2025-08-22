@@ -9,6 +9,7 @@ type Props = {
     imageUrl: string;
     requiredAmount: number;
     fundedAmount: number;
+    stripeAccountId:string;
   };
 };
 

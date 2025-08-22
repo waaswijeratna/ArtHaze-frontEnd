@@ -1,13 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
-"use client";
+"use client"; 
 
-import { getExhibitionDetailsById } from "@/services/exhibitionService";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader, FirstPersonControls } from 'three-stdlib';
+import { getExhibitionDetailsById } from "@/services/exhibitionService";
 
-type DetailsData = {
+interface Exhibition {
   _id: string;
   name: string;
   gallery: {
@@ -15,8 +16,7 @@ type DetailsData = {
     modelUrl: string;
   };
   artImages: string[];
-};
-
+}
 
 type ImageData = {
   url: string;
@@ -30,27 +30,31 @@ export default function ExhibitionGallery() {
   const id = searchParams.get("id");
   const [activeTitle, setActiveTitle] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [details, setDetails] = useState<DetailsData | null>(null);
+  const [exhibition, setExhibition] = useState<Exhibition | null>(null);
 
   useEffect(() => {
     const fetchDetails = async () => {
       try {
-        if (id) {
-          const data = await getExhibitionDetailsById(id);
-          console.log("response?",data);
-          setDetails(data);
+        if (!id) {
+          console.error("No exhibition ID provided");
+          setIsLoading(false);
+          return;
         }
-
-      } catch (error) {
-        console.error("Failed to load exhibitions:", error);
+        
+        const data = await getExhibitionDetailsById(id);
+        setExhibition(data);
+      } catch (err) {
+        console.error("Failed to load exhibition details", err);
+        setIsLoading(false);
       }
     };
 
-
-    if (id) fetchDetails();
+    fetchDetails();
   }, [id]);
 
   useEffect(() => {
+    // Don't initialize the 3D scene until we have exhibition data
+    if (!exhibition) return;
 
     const scene = new THREE.Scene();
     const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -62,15 +66,11 @@ export default function ExhibitionGallery() {
 
     const loader = new GLTFLoader();
     const textureLoader = new THREE.TextureLoader();
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let galleryModel: THREE.Object3D;
     let camera: THREE.PerspectiveCamera | null = null;
 
-    if (!details) return;
-
-
-
-    loader.load("/assets/threeD/test7/scene.gltf", //hereeeeeeeeeeeeeeeeee
+    // Use the modelUrl from the API response
+    loader.load(exhibition.gallery.modelUrl,
       (gltf) => {
         setIsLoading(false);
         const model = gltf.scene;
@@ -115,24 +115,32 @@ export default function ExhibitionGallery() {
 
             const frameMesh = new THREE.Mesh(frameGeometry, materials);
             frameMesh.name = name;
-            frameMesh.userData.title = imageData.title;
+            frameMesh.userData.title = imageData.title; 
             frameMesh.position.copy(marker.position);
             frameMesh.rotation.copy(marker.rotation);
             frameMesh.position.z += 0.1;
             scene.add(frameMesh);
           };
 
-          const imageData: ImageData[] = details.artImages.map((url: string, index: number) => ({//hereeeeeeeee
+          // Create imageData from API response
+          const imageData: ImageData[] = exhibition.artImages.map((url, index) => ({
             url,
-            title: `Artwork ${index + 1}`
+            title: `Artwork ${index + 1}`, // You can modify this to use actual titles if available
           }));
 
+          // If no images are available, show a message or use fallback
+          if (imageData.length === 0) {
+            console.warn("No art images available for this exhibition");
+          }
 
           let frameIndex = 0;
           model.traverse((child) => {
             if (child.isObject3D && child.name.startsWith("FramePoint")) {
-              createFrameAtMarker(child, imageData[frameIndex % imageData.length], child.name);
-              frameIndex++;
+              // Only create frame if we have images available
+              if (imageData.length > 0) {
+                createFrameAtMarker(child, imageData[frameIndex % imageData.length], child.name);
+                frameIndex++;
+              }
             }
           });
 
@@ -194,11 +202,11 @@ export default function ExhibitionGallery() {
     );
 
     return () => {
-      if (mountRef.current) {
+      if (mountRef.current && mountRef.current.contains(renderer.domElement)) {
         mountRef.current.removeChild(renderer.domElement);
       }
     };
-  }, [id]);
+  }, [exhibition]); // Now depends on exhibition data
 
   return (
     <div className="canvasScene relative h-screen w-screen">
@@ -209,8 +217,23 @@ export default function ExhibitionGallery() {
         </div>
       )}
 
+      {/* Error state */}
+      {!isLoading && !exhibition && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 text-white">
+          <div className="text-center">
+            <p className="text-xl mb-4">Failed to load exhibition</p>
+            <button
+              onClick={() => router.back()}
+              className="px-4 py-2 bg-white text-black rounded hover:bg-gray-200"
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Close Button */}
-      {!isLoading && (
+      {!isLoading && exhibition && (
         <button
           onClick={() => router.back()}
           className="fixed top-4 right-4 z-50 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
@@ -219,7 +242,7 @@ export default function ExhibitionGallery() {
             xmlns="http://www.w3.org/2000/svg"
             className="h-6 w-6 text-gray-800"
             fill="none"
-            viewBox="0 0 24 24"
+            viewBox="0 24 24"
             stroke="currentColor"
           >
             <path
@@ -232,8 +255,15 @@ export default function ExhibitionGallery() {
         </button>
       )}
 
+      {/* Exhibition Title */}
+      {!isLoading && exhibition && (
+        <div className="fixed top-4 left-4 z-50 p-3 bg-black/80 text-white rounded-lg backdrop-blur-sm">
+          <h1 className="text-lg font-semibold">{exhibition.name}</h1>
+        </div>
+      )}
+
       {/* Artwork Title Display */}
-      {!isLoading && activeTitle && (
+      {!isLoading && activeTitle && exhibition && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 p-4 bg-black/80 text-white rounded-lg text-center backdrop-blur-sm">
           {activeTitle}
         </div>

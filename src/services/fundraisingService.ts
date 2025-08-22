@@ -53,6 +53,21 @@ export const getUserCampaigns = async () => {
   }
 };
 
+// Get all campaigns (publicly visible)
+export const getAllCampaigns = async () => {
+  try {
+    const response = await fetch("http://localhost:5000/campaigns"); 
+
+    if (!response.ok) throw new Error("Failed to fetch campaigns");
+
+    return await response.json();
+  } catch (err) {
+    console.error("getAllCampaigns error:", err);
+    return [];
+  }
+};
+
+
 export const deleteCampaign = async (campaignId: string) => {
   try {
     const userId = localStorage.getItem("userId");
@@ -70,4 +85,30 @@ export const deleteCampaign = async (campaignId: string) => {
     return false;
   }
 };
+
+export const createStripeCheckoutSession = async ({
+  amount,
+  campaignId,
+}: {
+  amount: number;
+  campaignId: string;
+}) => {
+  try {
+    const response = await fetch("http://localhost:5000/stripe/checkout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ amount, campaignId }),
+    });
+
+    if (!response.ok) throw new Error("Stripe checkout session creation failed");
+
+    return await response.json();
+  } catch (error) {
+    console.error("createStripeCheckoutSession error:", error);
+    return null;
+  }
+};
+
 
