@@ -1,5 +1,5 @@
 import "./globals.css";
-// import AuthChecker from "@/components/AuthChecker";
+import AuthChecker from "@/components/AuthChecker";
 import LayoutSwitcher from "@/components/LayoutSwitcher";
 
 export const metadata = {
@@ -11,11 +11,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        {/* <AuthChecker> */}
+        <AuthChecker>
           <LayoutSwitcher>
             {children}
           </LayoutSwitcher>
-        {/* </AuthChecker> */}
+        </AuthChecker>
       </body>
     </html>
   );

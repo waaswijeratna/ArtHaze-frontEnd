@@ -3,9 +3,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getExhibitionsWithGalleryInfo } from "@/services/exhibitionService"; // adjust path
-import UserProfileCard from "@/components/UserProfileCard"; // adjust path
-import TestExhibition from "./test-exhibition";
+import { getExhibitionsWithGalleryInfo } from "@/services/exhibitionService";
+import UserProfileCard from "@/components/UserProfileCard";
 
 interface ExhibitionCardData {
     _id: string;
@@ -46,7 +45,7 @@ export default function ExhibitionCards() {
     }
 
     return (
-        <div className="w-full h-full">
+        <div className="w-full h-[84vh] overflow-y-auto scrollbar-hide ">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-4">
                 {exhibitions.map((data) => (
                     <div
@@ -78,7 +77,6 @@ export default function ExhibitionCards() {
                     </div>
                 ))}
             </div>
-                        <TestExhibition />
 
         </div>
     );

@@ -27,7 +27,7 @@ export default function ExhibitionGallery() {
   const mountRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
-  const id = searchParams.get("id");
+  const id = searchParams?.get("id");
   const [activeTitle, setActiveTitle] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [exhibition, setExhibition] = useState<Exhibition | null>(null);

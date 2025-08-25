@@ -88,7 +88,7 @@ const CreateCampaignForm = ({ onClose }: { onClose: () => void }) => {
         <div className="flex justify-center">
           <button
             type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="bg-secondary px-4 py-2 text-black cursor-pointer rounded hover:bg-third duration-300"
             disabled={loading}
           >
             {loading ? "Creating..." : "Create Campaign"}
