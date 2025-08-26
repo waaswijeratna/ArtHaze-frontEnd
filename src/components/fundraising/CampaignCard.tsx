@@ -1,10 +1,12 @@
 /* eslint-disable @next/next/no-img-element */
 import React, { useState } from "react";
+import UserProfileCard from "../UserProfileCard";
 
 type Props = {
   campaign: {
     _id: string;
     title: string;
+    userId: string;
     reason: string;
     imageUrl: string;
     requiredAmount: number;
@@ -34,6 +36,9 @@ const CampaignCard: React.FC<Props> = ({ campaign }) => {
         <div className="text-sm font-medium">
           <span className="text-third">Funded:</span> ${campaign.fundedAmount} / $
           {campaign.requiredAmount}
+        </div>
+        <div className="mt-3 border-t pt-3 border-gray-500">
+          <UserProfileCard userId={campaign.userId} />
         </div>
       </div>
 
