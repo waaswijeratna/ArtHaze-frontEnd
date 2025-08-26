@@ -1,4 +1,5 @@
-const API_URL = "http://127.0.0.1:3658/m1/826407-806023-default/notices";
+// const API_URL = "http://127.0.0.1:3658/m1/826407-806023-default/notices";
+const API_URL = "http://localhost:5000/notices";
 
 // Fetch all notices
 export const getNotices = async () => {
