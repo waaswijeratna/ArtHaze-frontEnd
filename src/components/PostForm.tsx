@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { createPost, updatePost } from "@/services/postService";
 import ImageUploader from "./ImageUploader";
+import Snackbar from "./Snackbar";
 
 interface PostFormProps {
     onClose: () => void;
@@ -12,6 +13,15 @@ export default function PostForm({ onClose, initialData }: PostFormProps) {
     const [name, setName] = useState(initialData?.name || "");
     const [description, setDescription] = useState(initialData?.description || "");
     const [imageUrl, setImageUrl] = useState<string>(initialData?.imageUrl || "");
+    const [snackbar, setSnackbar] = useState<{
+        isOpen: boolean;
+        message: string;
+        type: 'success' | 'error';
+    }>({
+        isOpen: false,
+        message: '',
+        type: 'success'
+    });
 
     const handleOutsideClick = (e: React.MouseEvent) => {
         if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
@@ -21,14 +31,41 @@ export default function PostForm({ onClose, initialData }: PostFormProps) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (initialData) {
-            await updatePost({postId: initialData.id, name, description, imageUrl });
-        } else {
-            await createPost({name, description, imageUrl });
+        try {
+            if (initialData) {
+                const result = await updatePost({postId: initialData.id, name, description, imageUrl });
+                if (result) {
+                    setSnackbar({
+                        isOpen: true,
+                        message: "Post updated successfully!",
+                        type: 'success'
+                    });
+                    setTimeout(() => {
+                        window.location.reload();
+                        onClose();
+                    }, 1500);
+                }
+            } else {
+                const result = await createPost({name, description, imageUrl });
+                if (result) {
+                    setSnackbar({
+                        isOpen: true,
+                        message: "Post created successfully!",
+                        type: 'success'
+                    });
+                    setTimeout(() => {
+                        window.location.reload();
+                        onClose();
+                    }, 1500);
+                }
+            }
+        } catch (error) {
+            setSnackbar({
+                isOpen: true,
+                message: "An error occurred. Please try again."+error,
+                type: 'error'
+            });
         }
-
-        onClose();
     };
 
     return (
@@ -75,6 +112,12 @@ export default function PostForm({ onClose, initialData }: PostFormProps) {
                     </button>
                 </form>
             </div>
+            <Snackbar
+                isOpen={snackbar.isOpen}
+                message={snackbar.message}
+                type={snackbar.type}
+                onClose={() => setSnackbar(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 }

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { createAd, updateAd } from "@/services/advertisementsService";
 import { Advertisements } from "@/types";
 import ImageUploader from "../ImageUploader";
+import Snackbar from "../Snackbar";
 
 interface AdFormProps {
   initialData?: Advertisements;
@@ -19,6 +20,16 @@ export default function AdForm({ initialData, onClose }: AdFormProps) {
     userId: localStorage.getItem("userId") || "",
     contact: initialData?.contact || "",
     createdAt: initialData?.createdAt || "",
+  });
+
+  const [snackbar, setSnackbar] = useState<{
+    isOpen: boolean;
+    message: string;
+    type: 'success' | 'error';
+  }>({
+    isOpen: false,
+    message: '',
+    type: 'success'
   });
 
   useEffect(() => {
@@ -48,18 +59,39 @@ export default function AdForm({ initialData, onClose }: AdFormProps) {
     try {
       if (initialData) {
         if (!initialData.id) {
-          console.error("Error: Ad ID is missing!");
+          setSnackbar({
+            isOpen: true,
+            message: "Error: Advertisement ID is missing!",
+            type: 'error'
+          });
           return;
         }
-        await updateAd({ ...formData, id: initialData.id });
+        const result = await updateAd({ ...formData, id: initialData.id });
+        if (result) {
+          setSnackbar({
+            isOpen: true,
+            message: "Advertisement updated successfully!",
+            type: 'success'
+          });
+          setTimeout(() => onClose(), 1500);
+        }
       } else {
-        await createAd(formData);
+        const result = await createAd(formData);
+        if (result) {
+          setSnackbar({
+            isOpen: true,
+            message: "Advertisement created successfully!",
+            type: 'success'
+          });
+          setTimeout(() => onClose(), 1500);
+        }
       }
-      
-      // ✅ Close modal after successful submission
-      onClose();
     } catch (error) {
-      console.error("Error submitting ad:", error);
+      setSnackbar({
+        isOpen: true,
+        message: "Error submitting advertisement. Please try again."+error,
+        type: 'error'
+      });
     }
   };
 
@@ -143,6 +175,12 @@ export default function AdForm({ initialData, onClose }: AdFormProps) {
           </div>
         </form>
       </div>
+      <Snackbar
+        isOpen={snackbar.isOpen}
+        message={snackbar.message}
+        type={snackbar.type}
+        onClose={() => setSnackbar(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 }

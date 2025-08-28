@@ -4,6 +4,8 @@ import { Advertisements } from "@/types";
 import { FaEdit, FaTrash, FaTimes, FaPhone, FaImages } from "react-icons/fa";
 import moment from "moment";
 import UserProfileCard from "../UserProfileCard";
+import Dialog from "../Dialog";
+import Snackbar from "../Snackbar";
 
 interface AdCardProps {
     ad: Advertisements;
@@ -14,6 +16,16 @@ interface AdCardProps {
 
 export default function AdCard({ ad, onEdit, onDelete, myAds }: AdCardProps) {
     const [isOpen, setIsOpen] = useState(false);
+    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [snackbar, setSnackbar] = useState<{
+        isOpen: boolean;
+        message: string;
+        type: 'success' | 'error';
+    }>({
+        isOpen: false,
+        message: '',
+        type: 'success'
+    });
 
     // Format createdAt as relative time (e.g., "2 days ago")
     const formattedTime = ad.createdAt ? moment(ad.createdAt).fromNow() : "Unknown";
@@ -38,14 +50,26 @@ export default function AdCard({ ad, onEdit, onDelete, myAds }: AdCardProps) {
                 {myAds && (
                     <div className="flex justify-between mt-3">
                         <button
-                            onClick={(e) => { e.stopPropagation(); onEdit(ad); }}
+                            onClick={(e) => { 
+                                e.stopPropagation(); 
+                                onEdit(ad); 
+                                setSnackbar({
+                                    isOpen: true,
+                                    message: "Edit your advertisement details",
+                                    type: 'success'
+                                });
+                            }}
                             className="cursor-pointer text-secondary hover:text-third duration-300"
                         >
                             <FaEdit size={20} />
                         </button>
                         <button
-                            onClick={(e) => { e.stopPropagation(); onDelete(ad.id!); }}
+                            onClick={(e) => { 
+                                e.stopPropagation(); 
+                                setIsDialogOpen(true);
+                            }}
                             className="cursor-pointer text-red-400 hover:text-red-500 duration-300"
+                            title="Delete advertisement"
                         >
                             <FaTrash size={20} />
                         </button>
@@ -97,13 +121,20 @@ export default function AdCard({ ad, onEdit, onDelete, myAds }: AdCardProps) {
                             {myAds && (
                                 <div className="flex justify-between mt-4">
                                     <button
-                                        onClick={() => onEdit(ad)}
+                                        onClick={() => {
+                                            onEdit(ad);
+                                            setSnackbar({
+                                                isOpen: true,
+                                                message: "Edit your advertisement details",
+                                                type: 'success'
+                                            });
+                                        }}
                                         className="cursor-pointer text-secondary hover:text-third duration-300 flex items-center"
                                     >
                                         <FaEdit size={20} className="mr-2" /> Edit
                                     </button>
                                     <button
-                                        onClick={() => onDelete(ad.id!)}
+                                        onClick={() => setIsDialogOpen(true)}
                                         className="cursor-pointer text-red-400 hover:text-red-500 duration-300 flex items-center"
                                     >
                                         <FaTrash size={20} className="mr-2" /> Delete
@@ -115,6 +146,28 @@ export default function AdCard({ ad, onEdit, onDelete, myAds }: AdCardProps) {
                 </div>
             )}
 
+            <Dialog
+                isOpen={isDialogOpen}
+                title="Delete Advertisement"
+                message="Are you sure you want to delete this advertisement? This action cannot be undone."
+                onConfirm={() => {
+                    onDelete(ad.id!);
+                    setIsDialogOpen(false);
+                    setSnackbar({
+                        isOpen: true,
+                        message: "Advertisement deleted successfully",
+                        type: 'success'
+                    });
+                }}
+                onCancel={() => setIsDialogOpen(false)}
+            />
+
+            <Snackbar
+                isOpen={snackbar.isOpen}
+                message={snackbar.message}
+                type={snackbar.type}
+                onClose={() => setSnackbar(prev => ({ ...prev, isOpen: false }))}
+            />
         </>
     );
 }

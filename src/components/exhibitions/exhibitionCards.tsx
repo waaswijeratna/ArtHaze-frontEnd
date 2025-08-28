@@ -3,8 +3,9 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getExhibitionsWithGalleryInfo } from "@/services/exhibitionService";
+import { getAllExhibitions } from "@/services/exhibitionService";
 import UserProfileCard from "@/components/UserProfileCard";
+import { useSearchFilters } from "@/components/SearchFilterContext";
 
 interface ExhibitionCardData {
     _id: string;
@@ -21,10 +22,12 @@ export default function ExhibitionCards() {
     const [exhibitions, setExhibitions] = useState<ExhibitionCardData[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const { filters } = useSearchFilters();
+
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const data = await getExhibitionsWithGalleryInfo();
+                const data = await getAllExhibitions(filters);
                 setExhibitions(data);
             } catch (error) {
                 console.error("Failed to load exhibitions:", error);
@@ -34,7 +37,7 @@ export default function ExhibitionCards() {
         };
 
         fetchData();
-    }, []);
+    }, [filters]);
 
     const handleCardClick = (id: string) => {
         router.push(`/exhibitionsGallery?id=${id}`);

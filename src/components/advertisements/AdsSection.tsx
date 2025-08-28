@@ -1,21 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import AdCard from "./AdCard";
-import { getAllAds } from "@/services/advertisementsService"; // Assuming this function fetches all ads
+import { getAllAds } from "@/services/advertisementsService";
 import { Advertisements } from "@/types";
+import { useSearchFilters } from "@/components/SearchFilterContext";
 
 export default function AdsSection() {
   const [ads, setAds] = useState<Advertisements[]>([]);
+  const { filters } = useSearchFilters();
 
-  useEffect(() => {
-    fetchAds();
-  }, []);
-
-  const fetchAds = async () => {
-    const allAds = await getAllAds(); // Fetching all ads
+  const fetchAds = useCallback(async () => {
+    const allAds = await getAllAds(filters);
     if (allAds) {
       setAds(allAds);
     }
-  };
+  }, [filters]);
+
+  useEffect(() => {
+    fetchAds();
+  }, [fetchAds]);
 
   return (
     <div className="h-full w-full overflow-auto scrollbar-hide">

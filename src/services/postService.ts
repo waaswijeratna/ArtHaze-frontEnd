@@ -1,5 +1,24 @@
 const API_URL = "http://localhost:5000/posts";
 
+interface FilterParams {
+    search?: string;
+    sortBy?: "time" | "name" | null;
+    order?: "asc" | "desc" | null;
+    sortUser?: string;
+}
+
+const buildQueryString = (params: FilterParams): string => {
+    const queryParams = new URLSearchParams();
+    
+    if (params.search) queryParams.append('search', params.search);
+    if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params.order) queryParams.append('order', params.order);
+    if (params.sortUser) queryParams.append('sortUser', params.sortUser);
+    
+    const queryString = queryParams.toString();
+    return queryString ? `?${queryString}` : '';
+};
+
 export const createPost = async (data: { name: string; description: string; imageUrl: string }) => {
   try {
     console.log("image?",data)
@@ -34,7 +53,7 @@ export const createPost = async (data: { name: string; description: string; imag
 };
 
 // Get posts for a specific user
-export const getUserPosts = async () => {
+export const getUserPosts = async (filters?: FilterParams) => {
   try {
     const userId = localStorage.getItem("userId");
     if (!userId) {
@@ -42,13 +61,14 @@ export const getUserPosts = async () => {
       return null;
     }
 
-    const response = await fetch(`${API_URL}?userId=${userId}`, {
+    const baseQuery = `userId=${userId}`;
+    const filterQuery = filters ? buildQueryString(filters).replace('?', '&') : '';
+    const response = await fetch(`${API_URL}?${baseQuery}${filterQuery}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
     });
-    
 
     if (!response.ok) {
       throw new Error("Failed to fetch user posts");
@@ -61,7 +81,7 @@ export const getUserPosts = async () => {
   }
 };
 
-export const getFeed = async () => {
+export const getFeed = async (filters?: FilterParams) => {
   try {
     const userId = localStorage.getItem("userId");
     if (!userId) {
@@ -69,7 +89,9 @@ export const getFeed = async () => {
       return null;
     }
 
-    const response = await fetch(`${API_URL}/feed?userId=${userId}`, {
+    const baseQuery = `userId=${userId}`;
+    const filterQuery = filters ? buildQueryString(filters).replace('?', '&') : '';
+    const response = await fetch(`${API_URL}/feed?${baseQuery}${filterQuery}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

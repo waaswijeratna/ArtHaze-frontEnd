@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { deleteExhibition, getExhibitionsByUserId } from "@/services/exhibitionService";
 import UserProfileCard from "@/components/UserProfileCard";
+import { useSearchFilters } from "@/components/SearchFilterContext";
 import { FaEdit, FaTrash } from "react-icons/fa";
 
 interface ExhibitionCardData {
@@ -33,9 +34,11 @@ export default function ExhibitionCards({ onEdit, refreshKey = 0 }: ExhibitionCa
   const [exhibitions, setExhibitions] = useState<ExhibitionCardData[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const { filters } = useSearchFilters();
+
   const fetchData = async () => {
     try {
-      const data = await getExhibitionsByUserId();
+      const data = await getExhibitionsByUserId(filters);
       setExhibitions(data);
     } catch (error) {
       console.error("Failed to load exhibitions:", error);
@@ -47,8 +50,7 @@ export default function ExhibitionCards({ onEdit, refreshKey = 0 }: ExhibitionCa
   useEffect(() => {
     setLoading(true);
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshKey]);
+  }, [refreshKey, filters]);
 
   const handleCardClick = (id: string) => {
     router.push(`/exhibitionsGallery?id=${id}`);

@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { getUserCampaigns, deleteCampaign } from "@/services/fundraisingService";
 import CampaignCard from "./CampaignCard";
 import { Trash2, X } from "lucide-react";
+import { useSearchFilters } from "@/components/SearchFilterContext";
 import CreateCampaignForm from "./CreateCampaignForm";
 
 const MyCampaignsSection = () => {
@@ -11,12 +12,13 @@ const MyCampaignsSection = () => {
     const [campaigns, setCampaigns] = useState<any[]>([]);
     const [, setLoading] = useState(true);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const { filters } = useSearchFilters();
 
-    const fetchCampaigns = async () => {
-        const data = await getUserCampaigns();
+    const fetchCampaigns = useCallback(async () => {
+        const data = await getUserCampaigns(filters);
         setCampaigns(data || []);
         setLoading(false);
-    };
+    }, [filters]);
 
     const handleDelete = async (id: string) => {
         const confirmed = confirm("Are you sure you want to delete this campaign?");
@@ -30,7 +32,7 @@ const MyCampaignsSection = () => {
 
     useEffect(() => {
         fetchCampaigns();
-    }, []);
+    }, [fetchCampaigns]);
 
 
 

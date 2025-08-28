@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getUserPosts } from "@/services/postService";
 import PostCard from "./PostCard";
+import { useSearchFilters } from "@/components/SearchFilterContext";
 
 interface Post {
   id: string;
@@ -14,19 +15,16 @@ interface Post {
 
 export default function MyPosts() {
   const [posts, setPosts] = useState<Post[]>([]);
+  const { filters } = useSearchFilters();
 
-  const fetchPosts = async () => {
-    const data = await getUserPosts();
+  const fetchPosts = useCallback(async () => {
+    const data = await getUserPosts(filters);
     if (data) setPosts(data);
-  };
+  }, [filters]);
 
   useEffect(() => {
-    async function fetchPosts() {
-      const data = await getUserPosts();
-      if (data) setPosts(data);
-    }
     fetchPosts();
-  }, []);
+  }, [fetchPosts]);
 
   return (
     <div className="flex flex-col justify-center items-center">

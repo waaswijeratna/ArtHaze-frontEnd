@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import UserProfileCard from "../UserProfileCard";
 import PostForm from "../PostForm";
+import Dialog from "../Dialog";
+import Snackbar from "../Snackbar";
 import { deletePost } from "../../services/postService";
 
 interface PostCardProps {
@@ -18,15 +20,42 @@ interface PostCardProps {
 export default function PostCard({ id, name, description, imageUrl, userId, showEditButton = false, onDelete }: PostCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [snackbar, setSnackbar] = useState<{
+    isOpen: boolean;
+    message: string;
+    type: 'success' | 'error';
+  }>({
+    isOpen: false,
+    message: '',
+    type: 'success'
+  });
 
   const handleDelete = async () => {
-    const confirmed = window.confirm("Are you sure you want to delete this post?");
-    if (confirmed) {
+    setIsDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
       const success = await deletePost(id);
       if (success) {
-        onDelete?.(); // Refresh posts after deletion
+        setSnackbar({
+          isOpen: true,
+          message: "Post deleted successfully!",
+          type: 'success'
+        });
+        setTimeout(() => {
+          onDelete?.(); // Refresh posts after deletion
+        }, 1500);
       }
+    } catch (error) {
+      setSnackbar({
+        isOpen: true,
+        message: "Failed to delete post. Please try again."+error,
+        type: 'error'
+      });
     }
+    setIsDialogOpen(false);
   };
 
   return (
@@ -80,6 +109,21 @@ export default function PostCard({ id, name, description, imageUrl, userId, show
 
       {/* Render the Edit Form in a Modal */}
       {isEditing && <PostForm onClose={() => setIsEditing(false)} initialData={{ id, name, description, imageUrl }} />}
+
+      <Dialog
+        isOpen={isDialogOpen}
+        title="Delete Post"
+        message="Are you sure you want to delete this post? This action cannot be undone."
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setIsDialogOpen(false)}
+      />
+
+      <Snackbar
+        isOpen={snackbar.isOpen}
+        message={snackbar.message}
+        type={snackbar.type}
+        onClose={() => setSnackbar(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 }

@@ -1,5 +1,24 @@
 const API_URL = "http://localhost:5000/advertisements";
 
+interface FilterParams {
+    search?: string;
+    sortBy?: "time" | "name" | null;
+    order?: "asc" | "desc" | null;
+    sortUser?: string;
+}
+
+const buildQueryString = (params: FilterParams): string => {
+    const queryParams = new URLSearchParams();
+    
+    if (params.search) queryParams.append('search', params.search);
+    if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params.order) queryParams.append('order', params.order);
+    if (params.sortUser) queryParams.append('sortUser', params.sortUser);
+    
+    const queryString = queryParams.toString();
+    return queryString ? `?${queryString}` : '';
+};
+
 export const createAd = async (data: { 
   name: string; 
   description: string; 
@@ -38,7 +57,7 @@ export const createAd = async (data: {
   }
 };
 
-export const getUserAds = async () => {
+export const getUserAds = async (filters?: FilterParams) => {
   try {
     const userId = localStorage.getItem("userId");
     if (!userId) {
@@ -46,7 +65,8 @@ export const getUserAds = async () => {
       return null;
     }
 
-    const response = await fetch(`${API_URL}/user/${userId}`, {
+    const queryString = filters ? buildQueryString(filters) : '';
+    const response = await fetch(`${API_URL}/user/${userId}${queryString}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -64,9 +84,10 @@ export const getUserAds = async () => {
   }
 };
 
-export const getAllAds = async () => {
+export const getAllAds = async (filters?: FilterParams) => {
   try {
-    const response = await fetch(`${API_URL}`, {
+    const queryString = filters ? buildQueryString(filters) : '';
+    const response = await fetch(`${API_URL}${queryString}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

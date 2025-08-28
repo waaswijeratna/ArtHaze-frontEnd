@@ -1,24 +1,26 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import AdCard from "./AdCard";
 import { getUserAds, deleteAd } from "@/services/advertisementsService";
 import { Advertisements } from "@/types";
 import AdForm from "./AdForm";
+import { useSearchFilters } from "@/components/SearchFilterContext";
 
 export default function MyAdsSection() {
   const [ads, setAds] = useState<Advertisements[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingAd, setEditingAd] = useState<Advertisements | undefined>(undefined);
+  const { filters } = useSearchFilters();
 
-  useEffect(() => {
-    fetchAds();
-  }, []);
-
-  const fetchAds = async () => {
-    const userAds = await getUserAds();
+  const fetchAds = useCallback(async () => {
+    const userAds = await getUserAds(filters);
     if (userAds) {
       setAds(userAds);
     }
-  };
+  }, [filters]);
+
+  useEffect(() => {
+    fetchAds();
+  }, [fetchAds]);
 
   const handleDelete = async (id: string) => {
     if (await deleteAd(id)) {

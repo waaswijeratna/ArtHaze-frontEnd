@@ -2,7 +2,8 @@
 import UserProfile from "./userProfile";
 import SearchBar from "./searchBar";
 import HeaderNavBar from "./headerNavBar";
-import Notifications from "./notifications";
+// import Notifications from "./notifications";
+import Filters from "./Filters";
 
 export default function Header() {
   return (
@@ -10,8 +11,11 @@ export default function Header() {
       {/* Left Section: Logo & SearchBar */}
       <div className="flex items-center flex-1">
         <img src="images/logo.png" alt="logo" className="w-9 h-9 rounded-full object-cover mr-4" />
-        <div className="w-[25vw]">
+        <div className="w-[25vw] mr-3">
           <SearchBar />
+        </div>
+        <div>
+          <Filters />
         </div>
       </div>
 
@@ -22,7 +26,7 @@ export default function Header() {
 
       {/* Right Section: Notifications & UserProfile */}
       <div className="flex items-center justify-end flex-1 space-x-7">
-        <Notifications />
+        {/* <Notifications /> */}
         <UserProfile />
       </div>
     </div>

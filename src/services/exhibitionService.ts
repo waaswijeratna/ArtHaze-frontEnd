@@ -1,8 +1,27 @@
 const API_URL = "http://localhost:5000/exhibitions";
 
+interface FilterParams {
+    search?: string;
+    sortBy?: "time" | "name" | null;
+    order?: "asc" | "desc" | null;
+    sortUser?: string;
+}
+
 const getUserIdFromLocalStorage = () => {
     const user = localStorage.getItem("userId");
     return user ? user : null;
+};
+
+const buildQueryString = (params: FilterParams): string => {
+    const queryParams = new URLSearchParams();
+    
+    if (params.search) queryParams.append('search', params.search);
+    if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params.order) queryParams.append('order', params.order);
+    if (params.sortUser) queryParams.append('sortUser', params.sortUser);
+    
+    const queryString = queryParams.toString();
+    return queryString ? `?${queryString}` : '';
 };
 
 // ✅ Create Exhibition
@@ -29,9 +48,10 @@ export const submitExhibitionForm = async (formData: any) => {
 };
 
 // ✅ Get Exhibition Cards
-export const getExhibitionsWithGalleryInfo = async () => {
+export const getExhibitionsWithGalleryInfo = async (filters?: FilterParams) => {
     try {
-        const response = await fetch(`${API_URL}/cards`);
+        const queryString = filters ? buildQueryString(filters) : '';
+        const response = await fetch(`${API_URL}/cards${queryString}`);
         if (!response.ok) throw new Error("Failed to fetch exhibition cards");
 
         return await response.json();
@@ -57,12 +77,13 @@ export const getExhibitionDetailsById = async (exhibitionId: string) => {
 
 
 // ✅ Get Exhibitions By User ID
-export const getExhibitionsByUserId = async () => {
+export const getExhibitionsByUserId = async (filters?: FilterParams) => {
     try {
         const userId = getUserIdFromLocalStorage();
         if (!userId) throw new Error("User not logged in");
 
-        const response = await fetch(`${API_URL}/user/${userId}`);
+        const queryString = filters ? buildQueryString(filters) : '';
+        const response = await fetch(`${API_URL}/user/${userId}${queryString}`);
         if (!response.ok) throw new Error("Failed to fetch exhibitions by user ID");
 
         return await response.json();
@@ -126,4 +147,26 @@ export const confirmStripePayment = async (sessionId: string) => {
     }
 };
 
+export const getAllExhibitions = async (filters?: {
+  search?: string;
+  sortBy?: "time" | "name" | null;
+  order?: "asc" | "desc" | null;
+  sortUser?: string;
+}) => {
+  try {
+    const query = new URLSearchParams();
 
+    if (filters?.search) query.append("search", filters.search);
+    if (filters?.sortBy) query.append("sortBy", filters.sortBy);
+    if (filters?.order) query.append("order", filters.order);
+    if (filters?.sortUser) query.append("sortUser", filters.sortUser);
+
+    const response = await fetch(`${API_URL}?${query.toString()}`);
+    if (!response.ok) throw new Error("Failed to fetch all exhibitions");
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching all exhibitions:", error);
+    throw error;
+  }
+};

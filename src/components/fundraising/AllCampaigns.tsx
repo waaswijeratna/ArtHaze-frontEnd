@@ -1,10 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { getAllCampaigns, createStripeCheckoutSession } from "@/services/fundraisingService";
 import CampaignCard from "./CampaignCard";
 import { X } from "lucide-react";
+import { useSearchFilters } from "@/components/SearchFilterContext";
 
 const AllCampaignsSection = () => {
   const [campaigns, setCampaigns] = useState<any[]>([]);
@@ -13,11 +14,13 @@ const AllCampaignsSection = () => {
   const [donationAmount, setDonationAmount] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const fetchCampaigns = async () => {
-    const data = await getAllCampaigns();
+  const { filters } = useSearchFilters();
+  
+  const fetchCampaigns = useCallback(async () => {
+    const data = await getAllCampaigns(filters);
     setCampaigns(data || []);
     setLoading(false);
-  };
+  }, [filters]);
 
   const handleDonateClick = (campaign: any) => {
     setSelectedCampaign(campaign);
@@ -45,7 +48,7 @@ const AllCampaignsSection = () => {
 
   useEffect(() => {
     fetchCampaigns();
-  }, []);
+  }, [filters, fetchCampaigns]);
 
   if (campaigns.length === 0) {
     return (

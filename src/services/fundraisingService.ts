@@ -1,5 +1,24 @@
 const API_URL = "http://localhost:5000/campaigns";
 
+interface FilterParams {
+    search?: string;
+    sortBy?: "time" | "name" | null;
+    order?: "asc" | "desc" | null;
+    sortUser?: string;
+}
+
+const buildQueryString = (params: FilterParams): string => {
+    const queryParams = new URLSearchParams();
+    
+    if (params.search) queryParams.append('search', params.search);
+    if (params.sortBy) queryParams.append('sortBy', params.sortBy);
+    if (params.order) queryParams.append('order', params.order);
+    if (params.sortUser) queryParams.append('sortUser', params.sortUser);
+    
+    const queryString = queryParams.toString();
+    return queryString ? `?${queryString}` : '';
+};
+
 export const createFundraisingCampaign = async (data: {
   title: string;
   reason: string;
@@ -38,12 +57,13 @@ export const createFundraisingCampaign = async (data: {
 };
 
 // Get all campaigns of current user
-export const getUserCampaigns = async () => {
+export const getUserCampaigns = async (filters?: FilterParams) => {
   try {
     const userId = localStorage.getItem("userId");
     if (!userId) throw new Error("No userId found in localStorage");
 
-    const response = await fetch(`${API_URL}/user/${userId}`);
+    const queryString = filters ? buildQueryString(filters) : '';
+    const response = await fetch(`${API_URL}/user/${userId}${queryString}`);
     if (!response.ok) throw new Error("Failed to fetch user campaigns");
 
     return await response.json();
@@ -54,9 +74,10 @@ export const getUserCampaigns = async () => {
 };
 
 // Get all campaigns (publicly visible)
-export const getAllCampaigns = async () => {
+export const getAllCampaigns = async (filters?: FilterParams) => {
   try {
-    const response = await fetch("http://localhost:5000/campaigns"); 
+    const queryString = filters ? buildQueryString(filters) : '';
+    const response = await fetch(`${API_URL}${queryString}`);
 
     if (!response.ok) throw new Error("Failed to fetch campaigns");
 
