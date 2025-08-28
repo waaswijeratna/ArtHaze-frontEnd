@@ -23,7 +23,7 @@ export const createPost = async (data: { name: string; description: string; imag
     });
 
     if (!response.ok) {
-      throw new Error("Failed to create post");
+      throw new Error("Failed to create post it");
     }
 
     return await response.json();
