@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import ImageUploader from "@/components/ImageUploader";
 import { createFundraisingCampaign } from "@/services/fundraisingService";
+import Snackbar from "@/components/Snackbar";
 
 const CreateCampaignForm = ({ onClose }: { onClose: () => void }) => {
   const [formData, setFormData] = useState({
@@ -14,6 +15,15 @@ const CreateCampaignForm = ({ onClose }: { onClose: () => void }) => {
   });
 
   const [loading, setLoading] = useState(false);
+  const [snackbar, setSnackbar] = useState<{
+    isOpen: boolean;
+    message: string;
+    type: 'success' | 'error';
+  }>({
+    isOpen: false,
+    message: '',
+    type: 'success'
+  });
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -28,12 +38,32 @@ const CreateCampaignForm = ({ onClose }: { onClose: () => void }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const result = await createFundraisingCampaign(formData);
-    setLoading(false);
-
-    if (result) {
-      onClose(); // Close and refresh
+    try {
+      const result = await createFundraisingCampaign(formData);
+      if (result) {
+        setSnackbar({
+          isOpen: true,
+          message: "Campaign created successfully!",
+          type: 'success'
+        });
+        setTimeout(() => {
+          onClose(); // Close and refresh after showing success message
+        }, 1500);
+      } else {
+        setSnackbar({
+          isOpen: true,
+          message: "Failed to create campaign. Please try again.",
+          type: 'error'
+        });
+      }
+    } catch {
+      setSnackbar({
+        isOpen: true,
+        message: "An error occurred while creating the campaign.",
+        type: 'error'
+      });
     }
+    setLoading(false);
   };
 
   return (
@@ -95,6 +125,12 @@ const CreateCampaignForm = ({ onClose }: { onClose: () => void }) => {
           </button>
         </div>
       </form>
+      <Snackbar
+        isOpen={snackbar.isOpen}
+        message={snackbar.message}
+        type={snackbar.type}
+        onClose={() => setSnackbar(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 };

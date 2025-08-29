@@ -4,11 +4,21 @@
 import { useState } from "react";
 import ExhibitionCards from "@/components/exhibitions/MyExhibitionCards";
 import MyExhibitionForm from "@/components/exhibitions/ExhibitionForm";
+import Snackbar from "@/components/Snackbar";
 
 export default function MyExhibitionsParent() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editExhibition, setEditExhibition] = useState<any | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [snackbar, setSnackbar] = useState<{
+    isOpen: boolean;
+    message: string;
+    type: 'success' | 'error';
+  }>({
+    isOpen: false,
+    message: '',
+    type: 'success'
+  });
 
   const handleCreateClick = () => {
     setEditExhibition(null);
@@ -25,6 +35,11 @@ export default function MyExhibitionsParent() {
     setIsModalOpen(false);
     setEditExhibition(null);
     setRefreshKey((k) => k + 1);
+    setSnackbar({
+      isOpen: true,
+      message: editExhibition ? 'Exhibition updated successfully' : 'Exhibition created successfully',
+      type: 'success'
+    });
   };
 
   return (
@@ -62,6 +77,14 @@ export default function MyExhibitionsParent() {
           </div>
         </div>
       )}
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        isOpen={snackbar.isOpen}
+        message={snackbar.message}
+        type={snackbar.type}
+        onClose={() => setSnackbar(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 }

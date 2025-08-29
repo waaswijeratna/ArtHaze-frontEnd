@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import UserProfileCard from "../UserProfileCard";
 
+
 type Props = {
   campaign: {
     _id: string;
@@ -17,6 +18,7 @@ type Props = {
 
 const CampaignCard: React.FC<Props> = ({ campaign }) => {
   const [isOpen, setIsOpen] = useState(false);
+
 
   return (
     <>

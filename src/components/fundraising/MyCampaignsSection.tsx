@@ -6,12 +6,23 @@ import CampaignCard from "./CampaignCard";
 import { Trash2, X } from "lucide-react";
 import { useSearchFilters } from "@/components/SearchFilterContext";
 import CreateCampaignForm from "./CreateCampaignForm";
+import Dialog from "@/components/Dialog";
+import Snackbar from "@/components/Snackbar";
 
 const MyCampaignsSection = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [campaigns, setCampaigns] = useState<any[]>([]);
     const [, setLoading] = useState(true);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const [snackbar, setSnackbar] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
+        isOpen: false,
+        message: '',
+        type: 'success'
+    });
+    const [deleteDialog, setDeleteDialog] = useState<{ isOpen: boolean; campaignId: string }>({
+        isOpen: false,
+        campaignId: ''
+    });
     const { filters } = useSearchFilters();
 
     const fetchCampaigns = useCallback(async () => {
@@ -21,13 +32,38 @@ const MyCampaignsSection = () => {
     }, [filters]);
 
     const handleDelete = async (id: string) => {
-        const confirmed = confirm("Are you sure you want to delete this campaign?");
-        if (!confirmed) return;
+        setDeleteDialog({
+            isOpen: true,
+            campaignId: id
+        });
+    };
 
-        const success = await deleteCampaign(id);
-        if (success) {
-            setCampaigns((prev) => prev.filter((c) => c._id !== id));
+    const confirmDelete = async () => {
+        const id = deleteDialog.campaignId;
+        try {
+            const success = await deleteCampaign(id);
+            if (success) {
+                setCampaigns((prev) => prev.filter((c) => c._id !== id));
+                setSnackbar({
+                    isOpen: true,
+                    message: 'Campaign deleted successfully',
+                    type: 'success'
+                });
+            } else {
+                setSnackbar({
+                    isOpen: true,
+                    message: 'Failed to delete campaign',
+                    type: 'error'
+                });
+            }
+        } catch {
+            setSnackbar({
+                isOpen: true,
+                message: 'An error occurred while deleting the campaign',
+                type: 'error'
+            });
         }
+        setDeleteDialog({ isOpen: false, campaignId: '' });
     };
 
     useEffect(() => {
@@ -88,6 +124,23 @@ const MyCampaignsSection = () => {
                     </div>
                 </div>
             )}
+            
+            {/* Dialog for delete confirmation */}
+            <Dialog
+                isOpen={deleteDialog.isOpen}
+                title="Delete Campaign"
+                message="Are you sure you want to delete this campaign? This action cannot be undone."
+                onConfirm={confirmDelete}
+                onCancel={() => setDeleteDialog({ isOpen: false, campaignId: '' })}
+            />
+
+            {/* Snackbar for notifications */}
+            <Snackbar
+                isOpen={snackbar.isOpen}
+                message={snackbar.message}
+                type={snackbar.type}
+                onClose={() => setSnackbar(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 

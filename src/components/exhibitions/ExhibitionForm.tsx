@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -7,6 +8,7 @@ import { useState, useEffect } from "react";
 import ImageUploader from "../ImageUploader";
 import { submitExhibitionForm, updateExhibition } from "../../services/exhibitionService";
 import { fetchGalleries } from "../../services/galleriesService";
+import Snackbar from "@/components/Snackbar";
 
 interface ExhibitionFormProps {
   initialData?: any;           // data when editing
@@ -34,6 +36,15 @@ export default function ExhibitionForm({ initialData, onSubmitSuccess }: Exhibit
 
   const [errors, setErrors] = useState({ name: "", images: "", date: "", time: "" });
   const [isValid, setIsValid] = useState(false);
+  const [snackbar, setSnackbar] = useState<{
+    isOpen: boolean;
+    message: string;
+    type: 'success' | 'error';
+  }>({
+    isOpen: false,
+    message: '',
+    type: 'success'
+  });
 
   const selectedGallery = galleryList.find((g) => g._id === selectedGalleryId);
   const maxArts = selectedGallery?.maxArts || 0;
@@ -86,14 +97,28 @@ export default function ExhibitionForm({ initialData, onSubmitSuccess }: Exhibit
       let response;
       if (isEditMode) {
         response = await updateExhibition(initialData._id, formData);
-        console.log("Exhibition updated successfully", response);
+        setSnackbar({
+          isOpen: true,
+          message: "Exhibition updated successfully!",
+          type: 'success'
+        });
       } else {
         response = await submitExhibitionForm(formData);
-        console.log("Exhibition created successfully", response);
+        setSnackbar({
+          isOpen: true,
+          message: "Exhibition created successfully!",
+          type: 'success'
+        });
       }
-      onSubmitSuccess?.();
-    } catch (error) {
-      console.error("Error submitting exhibition", error);
+      setTimeout(() => {
+        onSubmitSuccess?.();
+      }, 1500);
+    } catch {
+      setSnackbar({
+        isOpen: true,
+        message: `Failed to ${isEditMode ? 'update' : 'create'} exhibition. Please try again.`,
+        type: 'error'
+      });
     }
   };
 
@@ -221,6 +246,14 @@ export default function ExhibitionForm({ initialData, onSubmitSuccess }: Exhibit
       >
         {isEditMode ? "Update Exhibition" : "Create Exhibition"}
       </button>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        isOpen={snackbar.isOpen}
+        message={snackbar.message}
+        type={snackbar.type}
+        onClose={() => setSnackbar(prev => ({ ...prev, isOpen: false }))}
+      />
     </form>
   );
 }

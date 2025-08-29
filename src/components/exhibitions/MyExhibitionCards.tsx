@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @next/next/no-img-element */
 "use client";
 
@@ -7,6 +8,8 @@ import { deleteExhibition, getExhibitionsByUserId } from "@/services/exhibitionS
 import UserProfileCard from "@/components/UserProfileCard";
 import { useSearchFilters } from "@/components/SearchFilterContext";
 import { FaEdit, FaTrash } from "react-icons/fa";
+import Dialog from "@/components/Dialog";
+import Snackbar from "@/components/Snackbar";
 
 interface ExhibitionCardData {
   _id: string;
@@ -33,6 +36,22 @@ export default function ExhibitionCards({ onEdit, refreshKey = 0 }: ExhibitionCa
   const router = useRouter();
   const [exhibitions, setExhibitions] = useState<ExhibitionCardData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [snackbar, setSnackbar] = useState<{
+    isOpen: boolean;
+    message: string;
+    type: 'success' | 'error';
+  }>({
+    isOpen: false,
+    message: '',
+    type: 'success'
+  });
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean;
+    exhibitionId: string;
+  }>({
+    isOpen: false,
+    exhibitionId: ''
+  });
 
   const { filters } = useSearchFilters();
 
@@ -57,13 +76,30 @@ export default function ExhibitionCards({ onEdit, refreshKey = 0 }: ExhibitionCa
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this exhibition?")) return;
+    setDeleteDialog({
+      isOpen: true,
+      exhibitionId: id
+    });
+  };
+
+  const confirmDelete = async () => {
+    const id = deleteDialog.exhibitionId;
     try {
       await deleteExhibition(id);
       setExhibitions((prev) => prev.filter((ex) => ex._id !== id));
-    } catch (error) {
-      console.error("Failed to delete exhibition:", error);
+      setSnackbar({
+        isOpen: true,
+        message: 'Exhibition deleted successfully',
+        type: 'success'
+      });
+    } catch {
+      setSnackbar({
+        isOpen: true,
+        message: 'Failed to delete exhibition',
+        type: 'error'
+      });
     }
+    setDeleteDialog({ isOpen: false, exhibitionId: '' });
   };
 
   if (loading) {
@@ -122,6 +158,23 @@ export default function ExhibitionCards({ onEdit, refreshKey = 0 }: ExhibitionCa
           </div>
         ))}
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        isOpen={deleteDialog.isOpen}
+        title="Delete Exhibition"
+        message="Are you sure you want to delete this exhibition? This action cannot be undone."
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteDialog({ isOpen: false, exhibitionId: '' })}
+      />
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        isOpen={snackbar.isOpen}
+        message={snackbar.message}
+        type={snackbar.type}
+        onClose={() => setSnackbar(prev => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
 }
