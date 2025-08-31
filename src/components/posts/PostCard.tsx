@@ -140,7 +140,7 @@ export default function PostCard({ id, name, description, imageUrl, userId, show
               onClick={handleLike}
               className={`cursor-pointer transition-colors ${
                 isLiked ? 'text-third' : 'text-gray-400'
-              } hover:text-third`}
+              } `}
               title={isLiked ? "Unlike" : "Like"}
               size={20}
             />

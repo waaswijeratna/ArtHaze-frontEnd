@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 import { useState } from "react";
 import LoginForm from "@/components/LoginForm";
@@ -21,7 +22,14 @@ export default function Login() {
         </div>
 
         {/* Right Section (Lottie Animation) */}
-        <div className="w-1/2 flex items-center justify-center bg-fourth/90">
+        <div className="w-1/2 flex flex-col items-center justify-center bg-fourth/90">
+          <div>
+            <div className="flex items-center justify-center mb-4">
+              <img src="images/logo.png" alt="logo" className="w-9 h-9 rounded-full object-cover mr-2" />
+              <h2 className="text-white font-bold text-xl">Arthaze</h2>
+            </div>
+            <h3 className="text-white font-bold  text-center ml-3">Find Your peace</h3>
+          </div>
           <Lottie loop animationData={relaxingGirl} play className="" />
         </div>
       </div>
