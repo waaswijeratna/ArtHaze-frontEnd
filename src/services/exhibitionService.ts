@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:5000/exhibitions";
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const API_URL = `${BASE_URL}/exhibitions`;
 
 interface FilterParams {
     search?: string;
@@ -132,7 +133,7 @@ export const deleteExhibition = async (exhibitionId: string) => {
 
 export const confirmStripePayment = async (sessionId: string) => {
     try {
-        const response = await fetch("http://localhost:5000/stripe/confirm-payment", {
+        const response = await fetch(`${BASE_URL}/stripe/confirm-payment`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ sessionId }),

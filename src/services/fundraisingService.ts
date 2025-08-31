@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:5000/campaigns";
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const API_URL = `${BASE_URL}/campaigns`;
 
 interface FilterParams {
     search?: string;
@@ -115,7 +116,7 @@ export const createStripeCheckoutSession = async ({
   campaignId: string;
 }) => {
   try {
-    const response = await fetch("http://localhost:5000/stripe/checkout", {
+    const response = await fetch(`${BASE_URL}/stripe/checkout`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

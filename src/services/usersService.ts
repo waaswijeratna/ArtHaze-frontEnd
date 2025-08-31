@@ -1,7 +1,8 @@
 // services/userService.ts
 export const getUserProfile = async (userId: string) => {
     try {
-      const response = await fetch(`http://localhost:5000/users/${userId}`, {  // Adjust API URL as needed
+      const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+      const response = await fetch(`${BASE_URL}/users/${userId}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

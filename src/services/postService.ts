@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:5000/posts";
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const API_URL = `${BASE_URL}/posts`;
 
 interface FilterParams {
     search?: string;
@@ -159,6 +160,59 @@ export const deletePost = async (postId: string) => {
     return true;
   } catch (error) {
     console.error("Error deleting post:", error);
+    return false;
+  }
+};
+
+export const toggleLike = async (postId: string) => {
+  try {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      console.error("User ID not found in localStorage.");
+      return null;
+    }
+
+    const response = await fetch(`${API_URL}/${postId}/like`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to toggle like");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error toggling like:", error);
+    return null;
+  }
+};
+
+export const isPostLiked = async (postId: string) => {
+  try {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      console.error("User ID not found in localStorage.");
+      return false;
+    }
+
+    const response = await fetch(`${API_URL}/${postId}/isLiked?userId=${userId}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to check like status");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error checking like status:", error);
     return false;
   }
 };

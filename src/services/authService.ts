@@ -1,4 +1,5 @@
-const API_BASE_URL = "http://localhost:5000/users";
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const API_BASE_URL = `${BASE_URL}/users`;
 
 interface UpdateUserData {
   id: string;

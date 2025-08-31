@@ -18,7 +18,8 @@ export interface ApiResponse<T> {
 }
 
 // Base URL
-const API_URL = "http://localhost:5000/notices";
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const API_URL = `${BASE_URL}/notices`;
 
 // Fetch all notices
 export const getNotices = async (): Promise<Notice[] | null> => {

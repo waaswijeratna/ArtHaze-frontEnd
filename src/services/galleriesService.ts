@@ -1,4 +1,5 @@
-const API_URL = "http://localhost:5000/galleries";  
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const API_URL = `${BASE_URL}/galleries`;
 
 
 export interface Gallery {
