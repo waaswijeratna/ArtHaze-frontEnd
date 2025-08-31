@@ -124,7 +124,7 @@ export default function AdForm({ initialData, onClose }: AdFormProps) {
               name="price"
               value={formData.price}
               onChange={handleChange}
-              placeholder="Price"
+              placeholder="Price(USD)"
               className="text-white w-1/2 p-2 border rounded border-secondary focus:outline-none focus:ring-2 focus:ring-third"
             />
             <input

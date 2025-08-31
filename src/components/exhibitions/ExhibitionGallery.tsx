@@ -23,14 +23,26 @@ type ImageData = {
   title: string;
 };
 
+
 export default function ExhibitionGallery() {
   const mountRef = useRef<HTMLDivElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
   const id = searchParams?.get("id");
   const [activeTitle, setActiveTitle] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [exhibition, setExhibition] = useState<Exhibition | null>(null);
+  // Music controls
+  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(0.5);
+  // Sync mute/volume with audio element
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.muted = isMuted;
+      audioRef.current.volume = volume;
+    }
+  }, [isMuted, volume]);
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -210,6 +222,14 @@ export default function ExhibitionGallery() {
 
   return (
     <div className="canvasScene relative h-screen w-screen">
+      {/* Background Music */}
+      <audio
+        ref={audioRef}
+        src="/audio/peaceMusic.mp3"
+        autoPlay
+        loop
+        style={{ display: 'none' }}
+      />
       {/* Loading Overlay */}
       {isLoading && (
         <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
@@ -270,6 +290,34 @@ export default function ExhibitionGallery() {
       )}
 
       <div ref={mountRef} className="h-full w-full" />
+
+      {/* Music Controls - bottom left */}
+      <div className="fixed bottom-4 left-4 z-50 flex items-center gap-3 bg-black/70 p-2 rounded-lg shadow-lg">
+        <button
+          onClick={() => setIsMuted(m => !m)}
+          className="text-white focus:outline-none"
+          title={isMuted ? 'Unmute' : 'Mute'}
+        >
+          {isMuted ? (
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9l6 6m0-6l-6 6M15 12a6 6 0 11-12 0 6 6 0 0112 0z" />
+            </svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="w-6 h-6">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19V6l-7 7h4a1 1 0 001 1h3a1 1 0 001-1h4l-7-7v13z" />
+            </svg>
+          )}
+        </button>
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.01}
+          value={volume}
+          onChange={e => setVolume(Number(e.target.value))}
+          className="w-24 accent-third"
+        />
+      </div>
     </div>
   );
 }

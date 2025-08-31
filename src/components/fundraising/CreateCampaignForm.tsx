@@ -102,7 +102,7 @@ const CreateCampaignForm = ({ onClose }: { onClose: () => void }) => {
         <input
           type="number"
           name="requiredAmount"
-          placeholder="Required Amount"
+          placeholder="Required Amount(USD)"
           value={formData.requiredAmount}
           onChange={handleChange}
           className="w-full border p-2 rounded"
