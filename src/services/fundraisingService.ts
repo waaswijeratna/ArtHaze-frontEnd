@@ -58,9 +58,8 @@ export const createFundraisingCampaign = async (data: {
 };
 
 // Get all campaigns of current user
-export const getUserCampaigns = async (filters?: FilterParams) => {
+export const getUserCampaigns = async (userId?:string, filters?: FilterParams) => {
   try {
-    const userId = localStorage.getItem("userId");
     if (!userId) throw new Error("No userId found in localStorage");
 
     const queryString = filters ? buildQueryString(filters) : '';

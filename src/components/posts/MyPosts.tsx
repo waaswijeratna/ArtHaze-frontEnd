@@ -17,10 +17,12 @@ export default function MyPosts() {
   const [posts, setPosts] = useState<Post[]>([]);
   const { filters } = useSearchFilters();
 
+  const userId = localStorage.getItem("userId") ?? "";
+
   const fetchPosts = useCallback(async () => {
-    const data = await getUserPosts(filters);
+    const data = await getUserPosts(userId, filters);
     if (data) setPosts(data);
-  }, [filters]);
+  }, [filters, userId]);
 
   useEffect(() => {
     fetchPosts();

@@ -11,6 +11,8 @@ import { FaEdit, FaTrash } from "react-icons/fa";
 import Dialog from "@/components/Dialog";
 import Snackbar from "@/components/Snackbar";
 
+
+
 interface ExhibitionCardData {
   _id: string;
   name: string;
@@ -36,7 +38,8 @@ export default function ExhibitionCards({ onEdit, refreshKey = 0 }: ExhibitionCa
   const router = useRouter();
   const [exhibitions, setExhibitions] = useState<ExhibitionCardData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [snackbar, setSnackbar] = useState<{
+  const userId = localStorage.getItem("userId") ?? undefined;
+    const [snackbar, setSnackbar] = useState<{
     isOpen: boolean;
     message: string;
     type: 'success' | 'error';
@@ -57,7 +60,7 @@ export default function ExhibitionCards({ onEdit, refreshKey = 0 }: ExhibitionCa
 
   const fetchData = async () => {
     try {
-      const data = await getExhibitionsByUserId(filters);
+      const data = await getExhibitionsByUserId(userId, filters);
       setExhibitions(data);
     } catch (error) {
       console.error("Failed to load exhibitions:", error);

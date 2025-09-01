@@ -14,6 +14,7 @@ const MyCampaignsSection = () => {
     const [campaigns, setCampaigns] = useState<any[]>([]);
     const [, setLoading] = useState(true);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
+    const userId = localStorage.getItem("userId") ?? undefined;
     const [snackbar, setSnackbar] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
         isOpen: false,
         message: '',
@@ -26,10 +27,10 @@ const MyCampaignsSection = () => {
     const { filters } = useSearchFilters();
 
     const fetchCampaigns = useCallback(async () => {
-        const data = await getUserCampaigns(filters);
+        const data = await getUserCampaigns(userId, filters);
         setCampaigns(data || []);
         setLoading(false);
-    }, [filters]);
+    }, [filters, userId]);
 
     const handleDelete = async (id: string) => {
         setDeleteDialog({

@@ -7,16 +7,17 @@ import { useSearchFilters } from "@/components/SearchFilterContext";
 
 export default function MyAdsSection() {
   const [ads, setAds] = useState<Advertisements[]>([]);
+  const userId = localStorage.getItem("userId") ?? undefined;
   const [showForm, setShowForm] = useState(false);
   const [editingAd, setEditingAd] = useState<Advertisements | undefined>(undefined);
   const { filters } = useSearchFilters();
 
   const fetchAds = useCallback(async () => {
-    const userAds = await getUserAds(filters);
+    const userAds = await getUserAds(userId, filters);
     if (userAds) {
       setAds(userAds);
     }
-  }, [filters]);
+  }, [filters, userId]);
 
   useEffect(() => {
     fetchAds();
@@ -47,7 +48,7 @@ export default function MyAdsSection() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
         {ads.map((ad) => (
-          <AdCard key={ad.id} ad={ad} onEdit={handleEdit} onDelete={handleDelete} myAds={true}/>
+          <AdCard key={ad.id} ad={ad} onEdit={handleEdit} onDelete={handleDelete} myAds={true} />
         ))}
       </div>
 

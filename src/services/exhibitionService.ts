@@ -78,9 +78,9 @@ export const getExhibitionDetailsById = async (exhibitionId: string) => {
 
 
 // ✅ Get Exhibitions By User ID
-export const getExhibitionsByUserId = async (filters?: FilterParams) => {
+export const getExhibitionsByUserId = async (userId?:string, filters?: FilterParams) => {
     try {
-        const userId = getUserIdFromLocalStorage();
+        // const userId = getUserIdFromLocalStorage();
         if (!userId) throw new Error("User not logged in");
 
         const queryString = filters ? buildQueryString(filters) : '';

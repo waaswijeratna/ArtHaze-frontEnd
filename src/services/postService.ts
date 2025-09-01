@@ -54,9 +54,8 @@ export const createPost = async (data: { name: string; description: string; imag
 };
 
 // Get posts for a specific user
-export const getUserPosts = async (filters?: FilterParams) => {
+export const getUserPosts = async (userId:string, filters?: FilterParams) => {
   try {
-    const userId = localStorage.getItem("userId");
     if (!userId) {
       console.error("User ID not found in localStorage.");
       return null;

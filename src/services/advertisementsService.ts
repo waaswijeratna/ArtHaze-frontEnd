@@ -58,9 +58,8 @@ export const createAd = async (data: {
   }
 };
 
-export const getUserAds = async (filters?: FilterParams) => {
+export const getUserAds = async (userId?:string, filters?: FilterParams) => {
   try {
-    const userId = localStorage.getItem("userId");
     if (!userId) {
       console.error("User ID not found in localStorage.");
       return null;
