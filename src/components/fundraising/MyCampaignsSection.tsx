@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
@@ -8,13 +9,16 @@ import { useSearchFilters } from "@/components/SearchFilterContext";
 import CreateCampaignForm from "./CreateCampaignForm";
 import Dialog from "@/components/Dialog";
 import Snackbar from "@/components/Snackbar";
+import { useAuthStore } from "@/store/authStore";
+import { deleteImageFromFirebase } from "@/config/deleteImageFromFirebase";
+
 
 const MyCampaignsSection = () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const authUser = useAuthStore((state) => state.user);
     const [campaigns, setCampaigns] = useState<any[]>([]);
     const [, setLoading] = useState(true);
     const [isCreateOpen, setIsCreateOpen] = useState(false);
-    const userId = localStorage.getItem("userId") ?? undefined;
+    const userId = authUser?.id ?? undefined;
     const [snackbar, setSnackbar] = useState<{ isOpen: boolean; message: string; type: 'success' | 'error' }>({
         isOpen: false,
         message: '',
@@ -41,7 +45,17 @@ const MyCampaignsSection = () => {
 
     const confirmDelete = async () => {
         const id = deleteDialog.campaignId;
+        const campaign = campaigns.find((c) => c._id === id);
+
         try {
+            if (campaign?.images?.length) {
+                await Promise.all(
+                    campaign.images.map((url: string) => deleteImageFromFirebase(url))
+                );
+            } else if (campaign?.image) {
+                await deleteImageFromFirebase(campaign.image);
+            }
+
             const success = await deleteCampaign(id);
             if (success) {
                 setCampaigns((prev) => prev.filter((c) => c._id !== id));
@@ -125,7 +139,7 @@ const MyCampaignsSection = () => {
                     </div>
                 </div>
             )}
-            
+
             {/* Dialog for delete confirmation */}
             <Dialog
                 isOpen={deleteDialog.isOpen}

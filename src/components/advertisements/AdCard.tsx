@@ -6,6 +6,7 @@ import moment from "moment";
 import UserProfileCard from "../UserProfileCard";
 import Dialog from "../Dialog";
 import Snackbar from "../Snackbar";
+import { deleteImageFromFirebase } from "@/config/deleteImageFromFirebase";
 
 interface AdCardProps {
     ad: Advertisements;
@@ -50,9 +51,9 @@ export default function AdCard({ ad, onEdit, onDelete, myAds }: AdCardProps) {
                 {myAds && (
                     <div className="flex justify-between mt-3">
                         <button
-                            onClick={(e) => { 
-                                e.stopPropagation(); 
-                                onEdit(ad); 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onEdit(ad);
                                 setSnackbar({
                                     isOpen: true,
                                     message: "Edit your advertisement details",
@@ -64,8 +65,8 @@ export default function AdCard({ ad, onEdit, onDelete, myAds }: AdCardProps) {
                             <FaEdit size={20} />
                         </button>
                         <button
-                            onClick={(e) => { 
-                                e.stopPropagation(); 
+                            onClick={(e) => {
+                                e.stopPropagation();
                                 setIsDialogOpen(true);
                             }}
                             className="cursor-pointer text-red-400 hover:text-red-500 duration-300"
@@ -150,17 +151,35 @@ export default function AdCard({ ad, onEdit, onDelete, myAds }: AdCardProps) {
                 isOpen={isDialogOpen}
                 title="Delete Advertisement"
                 message="Are you sure you want to delete this advertisement? This action cannot be undone."
-                onConfirm={() => {
-                    onDelete(ad.id!);
-                    setIsDialogOpen(false);
-                    setSnackbar({
-                        isOpen: true,
-                        message: "Advertisement deleted successfully",
-                        type: 'success'
-                    });
+                onConfirm={async () => {
+                    try {
+                        // First delete the image
+                        if (ad.imageUrl) {
+                            await deleteImageFromFirebase(ad.imageUrl);
+                        }
+
+                        // Then delete the advertisement record
+                        onDelete(ad.id!);
+
+                        setSnackbar({
+                            isOpen: true,
+                            message: "Advertisement deleted successfully",
+                            type: 'success'
+                        });
+                    } catch (error) {
+                        console.error("Error deleting ad or image:", error);
+                        setSnackbar({
+                            isOpen: true,
+                            message: "Failed to delete advertisement",
+                            type: 'error'
+                        });
+                    } finally {
+                        setIsDialogOpen(false);
+                    }
                 }}
                 onCancel={() => setIsDialogOpen(false)}
             />
+
 
             <Snackbar
                 isOpen={snackbar.isOpen}

@@ -1,5 +1,7 @@
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-const API_URL = `${BASE_URL}/galleries`;
+import { fetchWithAuth } from "@/config/fetchWithAuth";
+
+
+const API_URL = `/galleries`;
 
 
 export interface Gallery {
@@ -12,11 +14,8 @@ export interface Gallery {
 
 export const fetchGalleries = async (): Promise<Gallery[]> => {
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetchWithAuth(API_URL, {
             method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-            },
         });
 
         if (!response.ok) {

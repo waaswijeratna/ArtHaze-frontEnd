@@ -1,3 +1,6 @@
+import { fetchWithAuth } from "@/config/fetchWithAuth";
+
+
 // types
 export interface Notice {
   _id?: string;
@@ -17,18 +20,13 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
-// Base URL
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-const API_URL = `${BASE_URL}/notices`;
+const API_URL = `/notices`;
 
 // Fetch all notices
 export const getNotices = async (): Promise<Notice[] | null> => {
   try {
-    const response = await fetch(API_URL, {
+    const response = await fetchWithAuth(API_URL, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
     });
 
     if (!response.ok) {
@@ -47,11 +45,8 @@ export const createNotice = async (
   noticeData: Notice
 ): Promise<Notice | null> => {
   try {
-    const response = await fetch(API_URL, {
+    const response = await fetchWithAuth(API_URL, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(noticeData),
     });
 
@@ -72,11 +67,8 @@ export const updateNotice = async (
   noticeData: Partial<Notice>
 ): Promise<Notice | null> => {
   try {
-    const response = await fetch(`${API_URL}/${id}`, {
+    const response = await fetchWithAuth(`${API_URL}/${id}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(noticeData),
     });
 
@@ -96,7 +88,7 @@ export const deleteNotice = async (
   id: string
 ): Promise<{ message: string } | null> => {
   try {
-    const response = await fetch(`${API_URL}/${id}`, {
+    const response = await fetchWithAuth(`${API_URL}/${id}`, {
       method: "DELETE",
     });
 

@@ -12,6 +12,7 @@ import UserExhibitionCards from "@/components/exhibitions/UserExhibitionCards";
 import CampaignCard from "@/components/fundraising/CampaignCard";
 import AdCard from "@/components/advertisements/AdCard";
 import { useSearchFilters } from "@/components/SearchFilterContext";
+import { useAuthStore } from "@/store/authStore";
 
 
 const BUTTONS = [
@@ -24,9 +25,9 @@ const BUTTONS = [
 export default function UserProfilePage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-    const { filters } = useSearchFilters();
+  const { filters } = useSearchFilters();
+  const authUser = useAuthStore((state) => state.user);
 
-  // Get userId from prop, query param, or fallback to localStorage
   const paramUserId = searchParams?.get("id");
   const [userId, setUserId] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
@@ -35,26 +36,25 @@ export default function UserProfilePage() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Priority: prop userId > query param > localStorage
     let id;
     console.log("paramUserId:", paramUserId);
-    if(paramUserId === "undefined"){
-        id = localStorage.getItem("userId");
+    if (paramUserId === "undefined") {
+      id = authUser?.id || null;
     }
-    else{
-        id = paramUserId
+    else {
+      id = paramUserId
     }
     setUserId(id);
     if (!id) return;
     getUserProfile(id).then(setUser);
-  }, [paramUserId]);
+  }, [paramUserId, authUser]);
 
   useEffect(() => {
     if (!userId) return;
     setLoading(true);
     let fetcher;
-    if (activeTab === "posts") fetcher = () => getUserPosts(userId, filters );
-    else if (activeTab === "exhibitions") fetcher = () => getExhibitionsByUserId(userId, filters );
+    if (activeTab === "posts") fetcher = () => getUserPosts(userId, filters);
+    else if (activeTab === "exhibitions") fetcher = () => getExhibitionsByUserId(userId, filters);
     else if (activeTab === "campaigns") fetcher = () => getUserCampaigns(userId, filters);
     else if (activeTab === "advertisements") fetcher = () => getUserAds(userId, filters);
     (async () => {
@@ -89,9 +89,8 @@ export default function UserProfilePage() {
         {BUTTONS.map(btn => (
           <button
             key={btn.key}
-            className={`px-2 py-1 text-sm rounded font-semibold border-b-2 transition-colors duration-200 ${
-              activeTab === btn.key ? "border-third text-third" : "border-transparent text-gray-400 hover:text-third"
-            }`}
+            className={`px-2 py-1 text-sm rounded font-semibold border-b-2 transition-colors duration-200 ${activeTab === btn.key ? "border-third text-third" : "border-transparent text-gray-400 hover:text-third"
+              }`}
             onClick={() => setActiveTab(btn.key)}
           >
             {btn.label}
@@ -122,7 +121,7 @@ export default function UserProfilePage() {
             ))}
             {activeTab === "advertisements" && data.map((ad: any) => (
               <li key={ad._id}>
-                <AdCard ad={ad} onEdit={() => {}} onDelete={() => {}} myAds={false} />
+                <AdCard ad={ad} onEdit={() => { }} onDelete={() => { }} myAds={false} />
               </li>
             ))}
           </ul>

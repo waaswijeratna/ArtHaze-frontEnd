@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import ImageUploader from "@/components/ImageUploader";
-import { createFundraisingCampaign } from "@/services/fundraisingService";
+import { createFundraisingCampaign, createStripeAccountLink } from "@/services/fundraisingService";
 import Snackbar from "@/components/Snackbar";
+import { useAuthStore } from "@/store/authStore";
 
 const CreateCampaignForm = ({ onClose }: { onClose: () => void }) => {
   const [formData, setFormData] = useState({
@@ -89,15 +90,45 @@ const CreateCampaignForm = ({ onClose }: { onClose: () => void }) => {
           required
         />
 
-        <input
-          type="text"
-          name="stripeAccountId"
-          placeholder="Your Stripe Account ID"
-          value={formData.stripeAccountId}
-          onChange={handleChange}
-          className="w-full border p-2 rounded"
-          required
-        />
+        <div className="flex gap-2">
+          <input
+            type="text"
+            name="stripeAccountId"
+            placeholder="Your Stripe Account ID"
+            value={formData.stripeAccountId}
+            onChange={handleChange}
+            className="flex-1 border p-2 rounded"
+            required
+          />
+          <button
+            type="button"
+            onClick={async () => {
+              const userId = useAuthStore.getState().user?.id;
+              if (!userId) {
+                setSnackbar({
+                  isOpen: true,
+                  message: "Please log in first",
+                  type: 'error'
+                });
+                return;
+              }
+              
+              const result = await createStripeAccountLink(userId);
+              if (result?.url) {
+                window.open(result.url, '_blank');
+              } else {
+                setSnackbar({
+                  isOpen: true,
+                  message: "Failed to create Stripe account",
+                  type: 'error'
+                });
+              }
+            }}
+            className="bg-secondary text-black hover:bg-third cursor-pointer px-4 py-2 rounded "
+          >
+            Create an Account
+          </button>
+        </div>
 
         <input
           type="number"

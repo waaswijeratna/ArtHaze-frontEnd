@@ -40,7 +40,7 @@ export default function LoginForm({ onSwitch }: Props) {
 
     try {
       const response = await loginUser(email, password);
-      if (response.token) {
+      if (response.accessToken) {
         router.push("/");
       } else {
         setServerError(response.message || "Login failed");

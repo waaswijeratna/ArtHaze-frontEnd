@@ -1,5 +1,7 @@
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-const API_URL = `${BASE_URL}/posts`;
+import { useAuthStore } from "@/store/authStore";
+import { fetchWithAuth } from "@/config/fetchWithAuth";
+
+const API_URL = "/posts";
 
 interface FilterParams {
     search?: string;
@@ -23,10 +25,10 @@ const buildQueryString = (params: FilterParams): string => {
 export const createPost = async (data: { name: string; description: string; imageUrl: string }) => {
   try {
     console.log("image?",data)
-    const userId = localStorage.getItem("userId"); 
+    const userId = useAuthStore.getState().user?.id; 
 
     if (!userId) {
-      console.error("User ID not found in localStorage.");
+      console.error("User ID not found");
       return null;
     }
 
@@ -34,11 +36,8 @@ export const createPost = async (data: { name: string; description: string; imag
 
     console.log("Submitting Post Data:", postData); 
 
-    const response = await fetch(`${API_URL}/create`, {
+    const response = await fetchWithAuth(`${API_URL}/create`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(postData),
     });
 
@@ -57,17 +56,14 @@ export const createPost = async (data: { name: string; description: string; imag
 export const getUserPosts = async (userId:string, filters?: FilterParams) => {
   try {
     if (!userId) {
-      console.error("User ID not found in localStorage.");
+      console.error("User ID not found");
       return null;
     }
 
     const baseQuery = `userId=${userId}`;
     const filterQuery = filters ? buildQueryString(filters).replace('?', '&') : '';
-    const response = await fetch(`${API_URL}?${baseQuery}${filterQuery}`, {
+    const response = await fetchWithAuth(`${API_URL}?${baseQuery}${filterQuery}`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
     });
 
     if (!response.ok) {
@@ -83,19 +79,16 @@ export const getUserPosts = async (userId:string, filters?: FilterParams) => {
 
 export const getFeed = async (filters?: FilterParams) => {
   try {
-    const userId = localStorage.getItem("userId");
+    const userId = useAuthStore.getState().user?.id;
     if (!userId) {
-      console.error("User ID not found in localStorage.");
+      console.error("User ID not found");
       return null;
     }
 
     const baseQuery = `userId=${userId}`;
     const filterQuery = filters ? buildQueryString(filters).replace('?', '&') : '';
-    const response = await fetch(`${API_URL}/feed?${baseQuery}${filterQuery}`, {
+    const response = await fetchWithAuth(`${API_URL}/feed?${baseQuery}${filterQuery}`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
     });
 
     if (!response.ok) {
@@ -112,21 +105,18 @@ export const getFeed = async (filters?: FilterParams) => {
 
 export const updatePost = async (data: { postId: string; name: string; description: string; imageUrl: string }) => {
   try {
-    const userId = localStorage.getItem("userId");
+    const userId = useAuthStore.getState().user?.id;
 
     if (!userId) {
-      console.error("User ID not found in localStorage.");
+      console.error("User ID not found");
       return null;
     }
 
     const { postId, ...rest } = data;
     const postData = { ...rest, userId };
 
-    const response = await fetch(`${API_URL}/${postId}`, {
+    const response = await fetchWithAuth(`${API_URL}/${postId}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(postData),
     });
 
@@ -145,11 +135,8 @@ export const updatePost = async (data: { postId: string; name: string; descripti
 
 export const deletePost = async (postId: string) => {
   try {
-    const response = await fetch(`${API_URL}/${postId}`, {
+    const response = await fetchWithAuth(`${API_URL}/${postId}`, {
       method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
     });
 
     if (!response.ok) {
@@ -165,17 +152,14 @@ export const deletePost = async (postId: string) => {
 
 export const toggleLike = async (postId: string) => {
   try {
-    const userId = localStorage.getItem("userId");
+    const userId = useAuthStore.getState().user?.id;
     if (!userId) {
-      console.error("User ID not found in localStorage.");
+      console.error("User ID not found");
       return null;
     }
 
-    const response = await fetch(`${API_URL}/${postId}/like`, {
+    const response = await fetchWithAuth(`${API_URL}/${postId}/like`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify({ userId }),
     });
 
@@ -192,17 +176,14 @@ export const toggleLike = async (postId: string) => {
 
 export const isPostLiked = async (postId: string) => {
   try {
-    const userId = localStorage.getItem("userId");
+    const userId = useAuthStore.getState().user?.id;
     if (!userId) {
-      console.error("User ID not found in localStorage.");
+      console.error("User ID not found");
       return false;
     }
 
-    const response = await fetch(`${API_URL}/${postId}/isLiked?userId=${userId}`, {
+    const response = await fetchWithAuth(`${API_URL}/${postId}/isLiked?userId=${userId}`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
     });
 
     if (!response.ok) {

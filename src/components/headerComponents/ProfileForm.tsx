@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { updateUser } from "@/services/authService";
 import ImageUploader from "../ImageUploader";
+import { useAuthStore } from "@/store/authStore";
+
 
 interface ProfileData {
   id: string;
@@ -34,8 +36,8 @@ export default function ProfileForm({ initialData }: Props) {
   };
 
   const handleSignOut = () => {
-    localStorage.removeItem("userData");
-    localStorage.removeItem("userId");
+    useAuthStore.getState().clearAuth();
+    localStorage.removeItem("refreshToken");
     router.push("/login");
   };
 

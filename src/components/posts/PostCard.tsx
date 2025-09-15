@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @next/next/no-img-element */
 import React, { useState, useEffect } from "react";
 import { FaEdit, FaTrash, FaHeart } from "react-icons/fa";
@@ -7,6 +8,9 @@ import Dialog from "../Dialog";
 import Snackbar from "../Snackbar";
 import { deletePost, toggleLike, isPostLiked } from "../../services/postService";
 import { usePostLikes } from "@/hooks/usePostLikes";
+import { useAuthStore } from "@/store/authStore";
+import { deleteImageFromFirebase } from "@/config/deleteImageFromFirebase";
+
 
 interface PostCardProps {
   id: string;
@@ -21,6 +25,7 @@ interface PostCardProps {
 
 export default function PostCard({ id, name, description, imageUrl, userId, showEditButton = false, onDelete, likes = [] }: PostCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const authUser = useAuthStore((state) => state.user);
   const [isEditing, setIsEditing] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
@@ -37,12 +42,12 @@ export default function PostCard({ id, name, description, imageUrl, userId, show
 
   // Initialize like state from props and check server state
   useEffect(() => {
-    const currentUserId = localStorage.getItem("userId");
+    const currentUserId = authUser?.id;
     if (currentUserId && likes) {
       setIsLiked(likes.includes(currentUserId));
       setLikeCount(likes.length);
     }
-    
+
     const checkLikeStatus = async () => {
       const liked = await isPostLiked(id);
       setIsLiked(liked);
@@ -53,10 +58,10 @@ export default function PostCard({ id, name, description, imageUrl, userId, show
   // Handle real-time like updates
   usePostLikes((postId, updatedLikes) => {
     if (postId === id) {
-      const currentUserId = localStorage.getItem("userId");
+      const currentUserId = authUser?.id;
       const newLikeCount = updatedLikes.length;
       const newIsLiked = currentUserId ? updatedLikes.includes(currentUserId) : false;
-      
+
       // Only update if the state actually changed
       if (likeCount !== newLikeCount) {
         setLikeCount(newLikeCount);
@@ -73,6 +78,9 @@ export default function PostCard({ id, name, description, imageUrl, userId, show
 
   const handleConfirmDelete = async () => {
     try {
+      if (imageUrl) {
+      await deleteImageFromFirebase(imageUrl);
+    }
       const success = await deletePost(id);
       if (success) {
         setSnackbar({
@@ -87,7 +95,7 @@ export default function PostCard({ id, name, description, imageUrl, userId, show
     } catch (error) {
       setSnackbar({
         isOpen: true,
-        message: "Failed to delete post. Please try again."+error,
+        message: "Failed to delete post. Please try again." + error,
         type: 'error'
       });
     }
@@ -95,7 +103,7 @@ export default function PostCard({ id, name, description, imageUrl, userId, show
   };
 
   const handleLike = async () => {
-    const currentUserId = localStorage.getItem("userId");
+    const currentUserId = authUser?.id;
     if (!currentUserId) {
       setSnackbar({
         isOpen: true,
@@ -123,7 +131,7 @@ export default function PostCard({ id, name, description, imageUrl, userId, show
       setLikeCount(prev => isLiked ? prev + 1 : prev - 1);
       setSnackbar({
         isOpen: true,
-        message: "Failed to update like status"+error,
+        message: "Failed to update like status" + error,
         type: 'error'
       });
     }
@@ -138,9 +146,8 @@ export default function PostCard({ id, name, description, imageUrl, userId, show
           <div className="flex items-center gap-2 mr-4">
             <FaHeart
               onClick={handleLike}
-              className={`cursor-pointer transition-colors ${
-                isLiked ? 'text-third' : 'text-gray-400'
-              } `}
+              className={`cursor-pointer transition-colors ${isLiked ? 'text-third' : 'text-gray-400'
+                } `}
               title={isLiked ? "Unlike" : "Like"}
               size={20}
             />
@@ -164,27 +171,27 @@ export default function PostCard({ id, name, description, imageUrl, userId, show
             </>
           )}
         </div>
-        
+
       </div>
 
       <h3 className="text-white text-lg font-bold mb-2 truncate">{name}</h3>
 
       {/* Description with "See More" and "See Less" */}
       {/* Description with "See More" and "See Less" */}
-<p className="text-white mb-3 inline">
-  {expanded || description.length <= 50
-    ? description
-    : `${description.slice(0, 50)}... `}
-  
-  {description.length > 50 && (
-    <button
-      onClick={() => setExpanded(!expanded)}
-      className="text-sm text-third cursor-pointer hover:underline ml-1"
-    >
-      {expanded ? "See Less" : "See More"}
-    </button>
-  )}
-</p>
+      <p className="text-white mb-3 inline">
+        {expanded || description.length <= 50
+          ? description
+          : `${description.slice(0, 50)}... `}
+
+        {description.length > 50 && (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="text-sm text-third cursor-pointer hover:underline ml-1"
+          >
+            {expanded ? "See Less" : "See More"}
+          </button>
+        )}
+      </p>
 
 
       {imageUrl && (

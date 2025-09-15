@@ -1,5 +1,9 @@
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-const API_URL = `${BASE_URL}/advertisements`;
+import { useAuthStore } from "@/store/authStore";
+import { fetchWithAuth } from "@/config/fetchWithAuth";
+
+
+
+const API_URL = "/advertisements";
 
 interface FilterParams {
     search?: string;
@@ -30,20 +34,17 @@ export const createAd = async (data: {
 }) => {
   try {
     console.log("Creating Ad:", data);
-    const userId = localStorage.getItem("userId");
+    const userId = useAuthStore.getState().user?.id;
 
     if (!userId) {
-      console.error("User ID not found in localStorage.");
+      console.error("User ID not found");
       return null;
     }
 
     const adData = { ...data, userId };
 
-    const response = await fetch(`${API_URL}`, {
+    const response = await fetchWithAuth(`${API_URL}`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(adData),
     });
 
@@ -61,16 +62,13 @@ export const createAd = async (data: {
 export const getUserAds = async (userId?:string, filters?: FilterParams) => {
   try {
     if (!userId) {
-      console.error("User ID not found in localStorage.");
+      console.error("User ID not found");
       return null;
     }
 
     const queryString = filters ? buildQueryString(filters) : '';
-    const response = await fetch(`${API_URL}/user/${userId}${queryString}`, {
+    const response = await fetchWithAuth(`${API_URL}/user/${userId}${queryString}`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
     });
 
     if (!response.ok) {
@@ -87,11 +85,8 @@ export const getUserAds = async (userId?:string, filters?: FilterParams) => {
 export const getAllAds = async (filters?: FilterParams) => {
   try {
     const queryString = filters ? buildQueryString(filters) : '';
-    const response = await fetch(`${API_URL}${queryString}`, {
+    const response = await fetchWithAuth(`${API_URL}${queryString}`, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
     });
 
     if (!response.ok) {
@@ -115,21 +110,18 @@ export const updateAd = async (data: {
   contact: string;
 }) => {
   try {
-    const userId = localStorage.getItem("userId");
+    const userId = useAuthStore.getState().user?.id;
 
     if (!userId) {
-      console.error("User ID not found in localStorage.");
+      console.error("User ID not found");
       return null;
     }
 
     const { id, ...rest } = data;
     const adData = { ...rest, userId };
 
-    const response = await fetch(`${API_URL}/${id}`, {
+    const response = await fetchWithAuth(`${API_URL}/${id}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(adData),
     });
 
@@ -146,11 +138,8 @@ export const updateAd = async (data: {
 
 export const deleteAd = async (id: string) => {
   try {
-    const response = await fetch(`${API_URL}/${id}`, {
+    const response = await fetchWithAuth(`${API_URL}/${id}`, {
       method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
     });
 
     if (!response.ok) {

@@ -3,6 +3,8 @@ import { createAd, updateAd } from "@/services/advertisementsService";
 import { Advertisements } from "@/types";
 import ImageUploader from "../ImageUploader";
 import Snackbar from "../Snackbar";
+import { useAuthStore } from "@/store/authStore";
+
 
 interface AdFormProps {
   initialData?: Advertisements;
@@ -10,6 +12,8 @@ interface AdFormProps {
 }
 
 export default function AdForm({ initialData, onClose }: AdFormProps) {
+    const authUser = useAuthStore((state) => state.user);
+
   const [formData, setFormData] = useState<Advertisements>({
     id: initialData?.id,
     name: initialData?.name || "",
@@ -17,7 +21,7 @@ export default function AdForm({ initialData, onClose }: AdFormProps) {
     price: initialData?.price || "",
     category: initialData?.category || "Paint", // Default category
     imageUrl: initialData?.imageUrl || "",
-    userId: localStorage.getItem("userId") || "",
+    userId: authUser?.id || "",
     contact: initialData?.contact || "",
     createdAt: initialData?.createdAt || "",
   });

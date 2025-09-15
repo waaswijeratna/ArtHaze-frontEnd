@@ -91,7 +91,7 @@ export default function SignupForm({ onSwitch }: Props) {
 
     try {
       const response = await registerUser(name, email, Number(age), password, pfpUrl);
-      if (response.token) {
+      if (response.accessToken) {
         router.push("/");
       } else {
         setServerError(response.message || "Registration failed");

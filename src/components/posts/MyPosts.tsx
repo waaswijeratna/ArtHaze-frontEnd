@@ -4,6 +4,8 @@ import { useEffect, useState, useCallback } from "react";
 import { getUserPosts } from "@/services/postService";
 import PostCard from "./PostCard";
 import { useSearchFilters } from "@/components/SearchFilterContext";
+import { useAuthStore } from "@/store/authStore";
+
 
 interface Post {
   id: string;
@@ -16,8 +18,9 @@ interface Post {
 export default function MyPosts() {
   const [posts, setPosts] = useState<Post[]>([]);
   const { filters } = useSearchFilters();
+  const authUser = useAuthStore((state) => state.user);
 
-  const userId = localStorage.getItem("userId") ?? "";
+  const userId = authUser?.id ?? "";
 
   const fetchPosts = useCallback(async () => {
     const data = await getUserPosts(userId, filters);

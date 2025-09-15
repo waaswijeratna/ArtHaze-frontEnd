@@ -1,12 +1,11 @@
+import { fetchWithAuth } from "@/config/fetchWithAuth";
+
+
 // services/userService.ts
 export const getUserProfile = async (userId: string) => {
     try {
-      const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-      const response = await fetch(`${BASE_URL}/users/${userId}`, {
+      const response = await fetchWithAuth(`/users/${userId}`, {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
       });
   
       if (!response.ok) {

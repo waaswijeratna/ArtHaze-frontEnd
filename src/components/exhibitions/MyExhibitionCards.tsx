@@ -10,6 +10,9 @@ import { useSearchFilters } from "@/components/SearchFilterContext";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import Dialog from "@/components/Dialog";
 import Snackbar from "@/components/Snackbar";
+import { useAuthStore } from "@/store/authStore";
+import { deleteImageFromFirebase } from "@/config/deleteImageFromFirebase";
+
 
 
 
@@ -35,10 +38,11 @@ interface ExhibitionCardsProps {
 }
 
 export default function ExhibitionCards({ onEdit, refreshKey = 0 }: ExhibitionCardsProps) {
+    const authUser = useAuthStore((state) => state.user);
   const router = useRouter();
   const [exhibitions, setExhibitions] = useState<ExhibitionCardData[]>([]);
   const [loading, setLoading] = useState(true);
-  const userId = localStorage.getItem("userId") ?? undefined;
+  const userId = authUser?.id ?? undefined;
     const [snackbar, setSnackbar] = useState<{
     isOpen: boolean;
     message: string;
@@ -87,7 +91,15 @@ export default function ExhibitionCards({ onEdit, refreshKey = 0 }: ExhibitionCa
 
   const confirmDelete = async () => {
     const id = deleteDialog.exhibitionId;
+    const exhibition = exhibitions.find((ex) => ex._id === id);
+
     try {
+      if (exhibition?.artImages?.length) {
+      await Promise.all(
+        exhibition.artImages.map((url) => deleteImageFromFirebase(url))
+      );
+    }
+
       await deleteExhibition(id);
       setExhibitions((prev) => prev.filter((ex) => ex._id !== id));
       setSnackbar({

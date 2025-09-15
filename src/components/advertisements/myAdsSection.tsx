@@ -4,10 +4,13 @@ import { getUserAds, deleteAd } from "@/services/advertisementsService";
 import { Advertisements } from "@/types";
 import AdForm from "./AdForm";
 import { useSearchFilters } from "@/components/SearchFilterContext";
+import { useAuthStore } from "@/store/authStore";
+
 
 export default function MyAdsSection() {
+  const authUser = useAuthStore((state) => state.user);
   const [ads, setAds] = useState<Advertisements[]>([]);
-  const userId = localStorage.getItem("userId") ?? undefined;
+  const userId = authUser?.id ?? undefined;
   const [showForm, setShowForm] = useState(false);
   const [editingAd, setEditingAd] = useState<Advertisements | undefined>(undefined);
   const { filters } = useSearchFilters();

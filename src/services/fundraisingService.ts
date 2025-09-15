@@ -1,5 +1,9 @@
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
-const API_URL = `${BASE_URL}/campaigns`;
+import { useAuthStore } from "@/store/authStore";
+import { fetchWithAuth } from "@/config/fetchWithAuth";
+
+
+
+const API_URL = `/campaigns`;
 
 interface FilterParams {
     search?: string;
@@ -27,10 +31,10 @@ export const createFundraisingCampaign = async (data: {
   stripeAccountId: string;
 }) => {
   try {
-    const userId = localStorage.getItem("userId");
+    const userId = useAuthStore.getState().user?.id;
 
     if (!userId) {
-      console.error("User ID not found in localStorage.");
+      console.error("User ID not found");
       return null;
     }
 
@@ -38,11 +42,8 @@ export const createFundraisingCampaign = async (data: {
 
     console.log("Submitting Campaign Data:", campaignData);
 
-    const response = await fetch(`${API_URL}`, {
+    const response = await fetchWithAuth(`${API_URL}`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify(campaignData),
     });
 
@@ -60,10 +61,10 @@ export const createFundraisingCampaign = async (data: {
 // Get all campaigns of current user
 export const getUserCampaigns = async (userId?:string, filters?: FilterParams) => {
   try {
-    if (!userId) throw new Error("No userId found in localStorage");
+    if (!userId) throw new Error("No userId found");
 
     const queryString = filters ? buildQueryString(filters) : '';
-    const response = await fetch(`${API_URL}/user/${userId}${queryString}`);
+    const response = await fetchWithAuth(`${API_URL}/user/${userId}${queryString}`);
     if (!response.ok) throw new Error("Failed to fetch user campaigns");
 
     return await response.json();
@@ -77,7 +78,7 @@ export const getUserCampaigns = async (userId?:string, filters?: FilterParams) =
 export const getAllCampaigns = async (filters?: FilterParams) => {
   try {
     const queryString = filters ? buildQueryString(filters) : '';
-    const response = await fetch(`${API_URL}${queryString}`);
+    const response = await fetchWithAuth(`${API_URL}${queryString}`);
 
     if (!response.ok) throw new Error("Failed to fetch campaigns");
 
@@ -91,10 +92,10 @@ export const getAllCampaigns = async (filters?: FilterParams) => {
 
 export const deleteCampaign = async (campaignId: string) => {
   try {
-    const userId = localStorage.getItem("userId");
+    const userId = useAuthStore.getState().user?.id;
     if (!userId) throw new Error("User ID not found");
 
-    const response = await fetch(`${API_URL}/${campaignId}?userId=${userId}`, {
+    const response = await fetchWithAuth(`${API_URL}/${campaignId}?userId=${userId}`, {
       method: "DELETE",
     });
 
@@ -115,7 +116,7 @@ export const createStripeCheckoutSession = async ({
   campaignId: string;
 }) => {
   try {
-    const response = await fetch(`${BASE_URL}/stripe/checkout`, {
+    const response = await fetchWithAuth(`/stripe/checkout`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -128,6 +129,31 @@ export const createStripeCheckoutSession = async ({
     return await response.json();
   } catch (error) {
     console.error("createStripeCheckoutSession error:", error);
+    return null;
+  }
+};
+
+export const createStripeAccountLink = async (userId: string) => {
+  try {
+    const response = await fetchWithAuth(`/stripe/connect/${userId}`);
+    if (!response.ok) throw new Error("Failed to create Stripe account link");
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("createStripeAccountLink error:", error);
+    return null;
+  }
+};
+
+export const getStripeAccountStatus = async (userId: string, accountId: string) => {
+  try {
+    const response = await fetchWithAuth(`/stripe/account-status/${userId}/${accountId}`);
+    if (!response.ok) throw new Error("Failed to get account status");
+    
+    return await response.json();
+  } catch (error) {
+    console.error("getStripeAccountStatus error:", error);
     return null;
   }
 };
