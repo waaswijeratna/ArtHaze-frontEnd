@@ -4,7 +4,6 @@ import { usePathname } from "next/navigation";
 import Header from "@/components/headerComponents/Header";
 import CreatePost from "@/components/CreatePost";
 import MyNavs from "@/components/MyNavs";
-// import Messages from "@/components/Messages";
 import Notices from "@/components/Notices";
 import FallingLeavesOverlay from "./FallingLeaves";
 import { SearchFilterProvider } from "./SearchFilterContext";

@@ -11,10 +11,7 @@ interface FilterParams {
     sortUser?: string;
 }
 
-// const getUserIdFromLocalStorage = () => {
-//     const user = localStorage.getItem("userId");
-//     return user ? user : null;
-// };
+
 
 const buildQueryString = (params: FilterParams): string => {
     const queryParams = new URLSearchParams();
@@ -28,7 +25,7 @@ const buildQueryString = (params: FilterParams): string => {
     return queryString ? `?${queryString}` : '';
 };
 
-// ✅ Create Exhibition
+// Create Exhibition
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const submitExhibitionForm = async (formData: any) => {
     const userId = useAuthStore.getState().user?.id;
@@ -50,7 +47,7 @@ export const submitExhibitionForm = async (formData: any) => {
     }
 };
 
-// ✅ Get Exhibition Cards
+// Get Exhibition Cards
 export const getExhibitionsWithGalleryInfo = async (filters?: FilterParams) => {
     try {
         const queryString = filters ? buildQueryString(filters) : '';
@@ -115,7 +112,7 @@ export const updateExhibition = async (exhibitionId: string, formData: any) => {
     }
 };
 
-// ✅ Delete Exhibition
+//  Delete Exhibition
 export const deleteExhibition = async (exhibitionId: string) => {
     try {
         const response = await fetchWithAuth(`${API_URL}/${exhibitionId}`, {

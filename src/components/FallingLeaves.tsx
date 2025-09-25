@@ -20,7 +20,7 @@ export default function FallingLeavesOverlay() {
     const initialTimeout = setTimeout(() => {
       playAnimation();
 
-      const interval = setInterval(playAnimation, 2 * 60 * 1000); // every minute
+      const interval = setInterval(playAnimation, 2 * 60 * 1000); 
 
       cleanupFns.push(() => clearInterval(interval));
     }, initialDelay);

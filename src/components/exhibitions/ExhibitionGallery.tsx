@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader, FirstPersonControls } from 'three-stdlib';
 import { getExhibitionDetailsById } from "@/services/exhibitionService";
+import { CrossIcon } from "lucide-react";
 
 interface Exhibition {
   _id: string;
@@ -94,18 +95,18 @@ export default function ExhibitionGallery() {
         }
 
         if (camera) {
-          camera.aspect = window.innerWidth / window.innerHeight;
-          camera.updateProjectionMatrix();
-          camera.position.y = 1.6;
+          // camera.aspect = window.innerWidth / window.innerHeight;
+          // camera.updateProjectionMatrix();
+          // camera.position.y = 1.6;
 
-          const box = new THREE.Box3().setFromObject(model);
-          const minY = box.min.y;
-          model.position.set(0, -minY, 0);
-          model.scale.set(1, 1, 1);
+          // const box = new THREE.Box3().setFromObject(model);
+          // const minY = box.min.y;
+          // model.position.set(0, -minY, 0);
+          // model.scale.set(1, 1, 1);
 
           const controls = new FirstPersonControls(camera, renderer.domElement);
           controls.lookSpeed = 0.003;
-          controls.movementSpeed = 0.4;
+          controls.movementSpeed = 0.2;
           controls.lookVertical = true;
           controls.constrainVertical = true;
           controls.verticalMin = 1.0;
@@ -137,7 +138,7 @@ export default function ExhibitionGallery() {
           // Create imageData from API response
           const imageData: ImageData[] = exhibition.artImages.map((url, index) => ({
             url,
-            title: `Artwork ${index + 1}`, // You can modify this to use actual titles if available
+            title: `Artwork ${index + 1}`, //can modify this to actual title later
           }));
 
           // If no images are available, show a message or use fallback
@@ -218,7 +219,7 @@ export default function ExhibitionGallery() {
         mountRef.current.removeChild(renderer.domElement);
       }
     };
-  }, [exhibition]); // Now depends on exhibition data
+  }, [exhibition]); 
 
   return (
     <div className="canvasScene relative h-screen w-screen">
@@ -258,20 +259,7 @@ export default function ExhibitionGallery() {
           onClick={() => router.back()}
           className="fixed top-4 right-4 z-50 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 text-gray-800"
-            fill="none"
-            viewBox="0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          <CrossIcon/>
         </button>
       )}
 

@@ -32,7 +32,7 @@ export async function fetchWithAuth(
       if (!refreshRes.ok) {
         clearAuth();
         localStorage.removeItem("refreshToken");
-        window.location.href = "/login"; // force re-login
+        window.location.href = "/login";
         throw new Error("Refresh token failed");
       }
 

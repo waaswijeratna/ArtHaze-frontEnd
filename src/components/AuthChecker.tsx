@@ -2,7 +2,7 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { refreshAccessToken } from "@/services/authService"; // adjust path as needed
+import { refreshAccessToken } from "@/services/authService";
 
 export default function AuthChecker({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -23,10 +23,9 @@ export default function AuthChecker({ children }: { children: React.ReactNode })
         return;
       }
 
-      // 🔄 Try refreshing access token
+      // Try refreshing access token
       const result = await refreshAccessToken();
       if (!result || !result.success) {
-        // Clear refresh token and force login
         localStorage.removeItem("refreshToken");
         router.push("/login");
       } else {

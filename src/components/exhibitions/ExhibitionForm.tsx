@@ -1,57 +1,68 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @next/next/no-img-element */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import ImageUploader from "../ImageUploader";
 import { submitExhibitionForm, updateExhibition } from "../../services/exhibitionService";
 import { fetchGalleries } from "../../services/galleriesService";
 import Snackbar from "@/components/Snackbar";
 
 interface ExhibitionFormProps {
-  initialData?: any;           // data when editing
+  initialData?: any;            // data when editing
   onSubmitSuccess?: () => void; // callback to refresh parent
+}
+
+interface FormValues {
+  name: string;
+  gallery: string;
+  artImages: string[];
+  date: string;
+  time: string;
 }
 
 export default function ExhibitionForm({ initialData, onSubmitSuccess }: ExhibitionFormProps) {
   const isEditMode = !!initialData;
 
-  // sync state when initialData changes (important when opening modal for different items)
-  const [name, setName] = useState(initialData?.name || "");
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    trigger,
+    watch,
+    formState: { errors },
+  } = useForm<FormValues>({
+    defaultValues: {
+      name: initialData?.name || "",
+      gallery: initialData?.gallery?._id || "",
+      artImages: initialData?.artImages || [],
+      date: initialData?.date ? initialData.date.split("T")[0] : "",
+      time: initialData?.time || "",
+    },
+  });
+
   const [galleryList, setGalleryList] = useState<any[]>([]);
-  const [selectedGalleryId, setSelectedGalleryId] = useState<string>(initialData?.gallery?._id || "");
-  const [artImages, setArtImages] = useState<string[]>(initialData?.artImages || []);
-  const [date, setDate] = useState(initialData?.date ? initialData.date.split("T")[0] : "");
-  const [time, setTime] = useState(initialData?.time || "");
-
-  useEffect(() => {
-    setName(initialData?.name || "");
-    setSelectedGalleryId(initialData?.gallery?._id || "");
-    setArtImages(initialData?.artImages || []);
-    setDate(initialData?.date ? initialData.date.split("T")[0] : "");
-    setTime(initialData?.time || "");
-  }, [initialData]);
-
-  const [errors, setErrors] = useState({ name: "", images: "", date: "", time: "" });
-  const [isValid, setIsValid] = useState(false);
   const [snackbar, setSnackbar] = useState<{
     isOpen: boolean;
     message: string;
-    type: 'success' | 'error';
+    type: "success" | "error";
   }>({
     isOpen: false,
-    message: '',
-    type: 'success'
+    message: "",
+    type: "success",
   });
 
-  const selectedGallery = galleryList.find((g) => g._id === selectedGalleryId);
-  const maxArts = selectedGallery?.maxArts || 0;
+  const selectedGalleryId = watch("gallery");
+  const artImages = watch("artImages");
+  const date = watch("date");
 
   const today = new Date().toISOString().split("T")[0];
   const getCurrentTime = () => new Date().toTimeString().slice(0, 5);
   const isToday = date === today;
+
+  const selectedGallery = galleryList.find((g) => g._id === selectedGalleryId);
+  const maxArts = selectedGallery?.maxArts || 0;
 
   useEffect(() => {
     fetchGalleries()
@@ -59,87 +70,71 @@ export default function ExhibitionForm({ initialData, onSubmitSuccess }: Exhibit
       .catch((err: any) => console.error("Failed to load galleries", err));
   }, []);
 
-  useEffect(() => {
-    const newErrors = {
-      name: name.trim() ? "" : "Name is required.",
-      images: artImages.length === 0 ? "At least one image is required." : "",
-      date: !date ? "Date is required." : (new Date(date) < new Date(today) ? "Date cannot be in the past." : ""),
-      time: !time ? "Time is required." : (isToday && time < getCurrentTime() ? "Time cannot be in the past." : "")
-    };
-
-    setErrors(newErrors);
-    setIsValid(Object.values(newErrors).every((msg) => msg === ""));
-  }, [name, artImages, date, time]);
-
   const handleUpload = (url: string) => {
     if (!maxArts || artImages.length < maxArts) {
-      setArtImages((prev) => [...prev, url]);
+      const updated = [...artImages, url];
+      setValue("artImages", updated, { shouldValidate: true });
+      trigger("artImages");
     }
   };
 
   const handleRemove = (index: number) => {
-    setArtImages((prev) => prev.filter((_, i) => i !== index));
+    const updated = artImages.filter((_, i) => i !== index);
+    setValue("artImages", updated, { shouldValidate: true });
+    trigger("artImages");
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isValid) return;
-
-    const formData = {
-      name,
-      gallery: selectedGalleryId, // gallery is locked in edit mode but still sent for completeness
-      artImages,
-      date,
-      time,
-    };
-
+  const onSubmit = async (data: FormValues) => {
     try {
-      let response;
       if (isEditMode) {
-        response = await updateExhibition(initialData._id, formData);
+        await updateExhibition(initialData._id, data);
         setSnackbar({
           isOpen: true,
           message: "Exhibition updated successfully!",
-          type: 'success'
+          type: "success",
         });
       } else {
-        response = await submitExhibitionForm(formData);
+        await submitExhibitionForm(data);
         setSnackbar({
           isOpen: true,
           message: "Exhibition created successfully!",
-          type: 'success'
+          type: "success",
         });
       }
       setTimeout(() => {
         onSubmitSuccess?.();
-      }, 1500);
-    } catch {
+      }, 1000);
+    } catch (error) {
       setSnackbar({
         isOpen: true,
-        message: `Failed to ${isEditMode ? 'update' : 'create'} exhibition. Please try again.`,
-        type: 'error'
+        message: `Failed to ${isEditMode ? "update" : "create"} exhibition. Please try again.`+error,
+        type: "error",
       });
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-primary text-white rounded-2xl max-w-xl mx-auto p-6 space-y-6 h-[90vh] overflow-y-auto scrollbar-hide">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="bg-primary text-white rounded-2xl max-w-xl mx-auto p-6 space-y-6 h-[90vh] overflow-y-auto scrollbar-hide"
+    >
       {/* Name */}
       <div>
         <label className="block font-bold mb-1">Name</label>
         <input
           type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="w-full p-2 border rounded"
+          className={`w-full p-2 border rounded ${
+            errors.name ? "border-red-500" : ""
+          }`}
+          {...register("name", { required: "Name is required." })}
         />
-        {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
+        {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
       </div>
 
-      {/* Gallery: user cannot change gallery in edit mode */}
+      {/* Gallery */}
       {!isEditMode ? (
         <div>
-          <label className="block font-bold mb-2 scrollbar-hide">Select Gallery</label>
+          <label className="block font-bold mb-2">Select Gallery</label>
           <div className="flex gap-4 overflow-x-auto scrollbar-hide">
             {galleryList.map((gallery) => (
               <div
@@ -148,8 +143,8 @@ export default function ExhibitionForm({ initialData, onSubmitSuccess }: Exhibit
                   selectedGalleryId === gallery._id ? "border-blue-500" : "border-gray-300"
                 }`}
                 onClick={() => {
-                  setSelectedGalleryId(gallery._id);
-                  setArtImages([]);
+                  setValue("gallery", gallery._id, { shouldValidate: true });
+                  setValue("artImages", [], { shouldValidate: true });
                 }}
               >
                 <img src={gallery.image} alt={gallery.name} className="w-32 h-32 object-cover rounded-md" />
@@ -158,11 +153,12 @@ export default function ExhibitionForm({ initialData, onSubmitSuccess }: Exhibit
               </div>
             ))}
           </div>
+          <input type="hidden" {...register("gallery", { required: "Gallery is required." })} />
+          {errors.gallery && <p className="text-red-500 text-sm mt-1">{errors.gallery.message}</p>}
         </div>
       ) : (
-        // optional: show locked gallery info in edit mode
         selectedGalleryId && (
-          <div className="border rounded-lg p-3 bg-gray-50">
+          <div className="border rounded-lg p-3 bg-gray-50 text-black">
             <p className="font-bold mb-2">Gallery</p>
             <div className="flex items-center gap-3">
               <img
@@ -192,9 +188,11 @@ export default function ExhibitionForm({ initialData, onSubmitSuccess }: Exhibit
             <ImageUploader
               key={index}
               initialImage={url}
-              onUpload={(updatedUrl) =>
-                setArtImages((prev) => prev.map((img, i) => (i === index ? updatedUrl : img)))
-              }
+              onUpload={(updatedUrl) => {
+                const updated = artImages.map((img, i) => (i === index ? updatedUrl : img));
+                setValue("artImages", updated, { shouldValidate: true });
+                trigger("artImages");
+              }}
               onRemove={() => handleRemove(index)}
             />
           ))}
@@ -206,7 +204,11 @@ export default function ExhibitionForm({ initialData, onSubmitSuccess }: Exhibit
             />
           )}
         </div>
-        {errors.images && <p className="text-red-500 text-sm mt-1">{errors.images}</p>}
+        <input
+          type="hidden"
+          {...register("artImages", { validate: (value) => value.length > 0 || "At least one image is required." })}
+        />
+        {errors.artImages && <p className="text-red-500 text-sm mt-1">{errors.artImages.message as string}</p>}
       </div>
 
       {/* Date */}
@@ -214,12 +216,13 @@ export default function ExhibitionForm({ initialData, onSubmitSuccess }: Exhibit
         <label className="block font-bold mb-1">Date</label>
         <input
           type="date"
-          value={date}
-          min={today}
-          onChange={(e) => setDate(e.target.value)}
-          className="w-full p-2 border rounded"
+          className={`w-full p-2 border rounded ${errors.date ? "border-red-500" : ""}`}
+          {...register("date", {
+            required: "Date is required.",
+            validate: (value) => new Date(value) >= new Date(today) || "Date cannot be in the past.",
+          })}
         />
-        {errors.date && <p className="text-red-500 text-sm mt-1">{errors.date}</p>}
+        {errors.date && <p className="text-red-500 text-sm mt-1">{errors.date.message}</p>}
       </div>
 
       {/* Time */}
@@ -227,32 +230,32 @@ export default function ExhibitionForm({ initialData, onSubmitSuccess }: Exhibit
         <label className="block font-bold mb-1">Time</label>
         <input
           type="time"
-          value={time}
+          className={`w-full p-2 border rounded ${errors.time ? "border-red-500" : ""}`}
           disabled={!date}
           min={isToday ? getCurrentTime() : undefined}
-          onChange={(e) => setTime(e.target.value)}
-          className="w-full p-2 border rounded disabled:bg-gray-100"
+          {...register("time", {
+            required: "Time is required.",
+            validate: (value) =>
+              !isToday || value >= getCurrentTime() || "Time cannot be in the past.",
+          })}
         />
-        {errors.time && <p className="text-red-500 text-sm mt-1">{errors.time}</p>}
+        {errors.time && <p className="text-red-500 text-sm mt-1">{errors.time.message}</p>}
       </div>
 
       {/* Submit */}
       <button
         type="submit"
-        disabled={!isValid}
-        className={`w-full text-white py-2 rounded transition ${
-          isValid ? "bg-blue-600 hover:bg-blue-700" : "bg-gray-400 cursor-not-allowed"
-        }`}
+        className="w-full text-white py-2 rounded transition bg-blue-600 hover:bg-blue-700"
       >
         {isEditMode ? "Update Exhibition" : "Create Exhibition"}
       </button>
 
-      {/* Snackbar for notifications */}
+      {/* Snackbar */}
       <Snackbar
         isOpen={snackbar.isOpen}
         message={snackbar.message}
         type={snackbar.type}
-        onClose={() => setSnackbar(prev => ({ ...prev, isOpen: false }))}
+        onClose={() => setSnackbar((prev) => ({ ...prev, isOpen: false }))}
       />
     </form>
   );

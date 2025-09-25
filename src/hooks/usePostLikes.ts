@@ -8,7 +8,7 @@ export function usePostLikes(onLikeUpdate: (postId: string, likes: string[]) => 
   useEffect(() => {
     // Initialize socket connection
     if (!socketRef.current) {
-      socketRef.current = io(process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000', {
+      socketRef.current = io(process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001', {
         reconnection: true,
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,

@@ -1,6 +1,9 @@
-import React, { useState } from "react";
-import ImageUploader from "./ImageUploader";
+"use client";
+import { useRef, useState } from "react";
+import { useForm } from "react-hook-form";
 import { createNotice } from "../services/noticesService";
+import ImageUploader from "./ImageUploader";
+import Snackbar from "./Snackbar";
 import { FiX } from "react-icons/fi";
 
 interface NoticeModalProps {
@@ -9,102 +12,184 @@ interface NoticeModalProps {
   onCreated: (success: boolean, error?: string) => void;
 }
 
-const NoticeModal: React.FC<NoticeModalProps> = ({ isOpen, onClose, onCreated }) => {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [imageUrl, setImageUrl] = useState<string>("");
-  const [loading, setLoading] = useState(false);
+interface FormValues {
+  title: string;
+  description: string;
+  imageUrl: string;
+}
 
-  const userId = "66cc1234abcd5678ef901234"; // Later: fetch from localhost/auth context
+export default function NoticeModal({ isOpen, onClose, onCreated }: NoticeModalProps) {
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    trigger,
+    reset,
+  } = useForm<FormValues>({
+    defaultValues: {
+      title: "",
+      description: "",
+      imageUrl: "",
+    },
+  });
+
+  const [snackbar, setSnackbar] = useState<{
+    isOpen: boolean;
+    message: string;
+    type: "success" | "error";
+  }>({
+    isOpen: false,
+    message: "",
+    type: "success",
+  });
+
+  const userId = "66cc1234abcd5678ef901234"; // TODO: fetch from auth context
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleOutsideClick = (e: React.MouseEvent) => {
+    if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+      onClose();
+    }
+  };
 
-    const newNotice = {
-      title,
-      description,
-      imageUrl,
-      userId,
-      status: "inactive" as const,
-    };
-
+  const onSubmit = async (data: FormValues) => {
     try {
-      const res = await createNotice(newNotice);
+      const newNotice = {
+        ...data,
+        userId,
+        status: "inactive" as const,
+      };
 
-      if (res) {
+      const result = await createNotice(newNotice);
+
+      if (result) {
+        setSnackbar({
+          isOpen: true,
+          message: "Notice created successfully!",
+          type: "success",
+        });
         onCreated(true);
-        onClose();
-        setTitle("");
-        setDescription("");
-        setImageUrl("");
+        reset(); // ✅ clear form
+        onClose(); // ✅ close modal
       } else {
+        setSnackbar({
+          isOpen: true,
+          message: "Failed to create notice",
+          type: "error",
+        });
         onCreated(false, "Failed to create notice");
       }
     } catch (error) {
-      onCreated(false, error instanceof Error ? error.message : "An unexpected error occurred");
+      setSnackbar({
+        isOpen: true,
+        message: "An error occurred. Please try again. " + error,
+        type: "error",
+      });
+      onCreated(false, error instanceof Error ? error.message : "Unexpected error");
     }
-
-    setLoading(false);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur">
-      <div className="bg-primary rounded-lg shadow-lg w-full max-w-md p-6 relative text-white">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur"
+      onClick={handleOutsideClick}
+    >
+      <div
+        ref={modalRef}
+        className="relative w-full max-w-md p-6 bg-primary rounded-lg shadow-lg text-white"
+      >
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute cursor-pointer top-3 right-3 text-gray-400 hover:text-white"
+          className="cursor-pointer absolute top-3 right-3 text-gray-400 hover:text-white"
         >
-          <FiX size={20} />
+          <FiX size={22} />
         </button>
 
-        <h2 className="text-lg font-semibold mb-4">Create Notice</h2>
+        <h2 className="text-2xl font-semibold text-center mb-5">
+          Create Notice
+        </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Title */}
           <div>
-            <label className="block text-sm font-medium">Title</label>
             <input
               type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-              className="w-full border rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-secondary"
+              placeholder="Notice Title"
+              className={`bg-fourth w-full text-third p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary ${
+                errors.title ? "border border-red-500" : ""
+              }`}
+              {...register("title", { required: "Title is required" })}
             />
+            {errors.title && (
+              <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
+            )}
           </div>
 
+          {/* Description */}
           <div>
-            <label className="block text-sm font-medium">Description</label>
             <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              required
-              className="w-full border rounded-lg px-3 py-2 mt-1 focus:outline-none focus:ring-2 focus:ring-secondary"
+              placeholder="Write a description..."
+              className={`scrollbar-hide bg-fourth w-full text-third p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-secondary max-h-[20vh] ${
+                errors.description ? "border border-red-500" : ""
+              }`}
+              rows={3}
+              {...register("description", {
+                required: "Description is required",
+                minLength: {
+                  value: 10,
+                  message: "Description must be at least 10 characters",
+                },
+              })}
             />
+            {errors.description && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.description.message}
+              </p>
+            )}
           </div>
 
-          <div>
-            <label className="block text-sm font-medium">Image</label>
-            <ImageUploader
-              onUpload={(url) => setImageUrl(url)}
-              onRemove={() => setImageUrl("")}
-              initialImage={imageUrl}
-            />
-          </div>
+          {/* Image */}
+          <ImageUploader
+            onUpload={(url) => {
+              setValue("imageUrl", url, { shouldValidate: true });
+              trigger("imageUrl");
+            }}
+            onRemove={() => {
+              setValue("imageUrl", "", { shouldValidate: true });
+              trigger("imageUrl");
+            }}
+          />
+          <input
+            type="hidden"
+            {...register("imageUrl", { required: "Image is required" })}
+          />
+          {errors.imageUrl && (
+            <p className="text-red-500 text-sm mt-1">
+              {errors.imageUrl.message}
+            </p>
+          )}
 
+          {/* Submit Button */}
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-secondary text-white py-2 rounded-lg hover:bg-third hover:text-fourth duration-300 transition cursor-pointer"
+            className="cursor-pointer bg-secondary w-full py-3 text-fourth font-semibold rounded-lg hover:bg-third transition"
           >
-            {loading ? "Creating..." : "Create Notice"}
+            Create Notice
           </button>
         </form>
       </div>
+
+      <Snackbar
+        isOpen={snackbar.isOpen}
+        message={snackbar.message}
+        type={snackbar.type}
+        onClose={() => setSnackbar((prev) => ({ ...prev, isOpen: false }))}
+      />
     </div>
   );
-};
-
-export default NoticeModal;
+}
