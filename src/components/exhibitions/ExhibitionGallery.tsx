@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
-"use client"; 
+"use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from 'react';
@@ -53,7 +53,7 @@ export default function ExhibitionGallery() {
           setIsLoading(false);
           return;
         }
-        
+
         const data = await getExhibitionDetailsById(id);
         setExhibition(data);
       } catch (err) {
@@ -83,8 +83,17 @@ export default function ExhibitionGallery() {
     let camera: THREE.PerspectiveCamera | null = null;
 
     // Use the modelUrl from the API response
-    loader.load(exhibition.gallery.modelUrl,
+    // Normalize path: use absolute URL if missing
+    const baseFrontendUrl =
+      typeof window !== "undefined" ? window.location.origin : "";
+
+    const modelUrl = exhibition.gallery.modelUrl.startsWith("http")
+      ? exhibition.gallery.modelUrl
+      : `${baseFrontendUrl}${exhibition.gallery.modelUrl}`;
+
+    loader.load(modelUrl,
       (gltf) => {
+
         setIsLoading(false);
         const model = gltf.scene;
         galleryModel = model;
@@ -128,7 +137,7 @@ export default function ExhibitionGallery() {
 
             const frameMesh = new THREE.Mesh(frameGeometry, materials);
             frameMesh.name = name;
-            frameMesh.userData.title = imageData.title; 
+            frameMesh.userData.title = imageData.title;
             frameMesh.position.copy(marker.position);
             frameMesh.rotation.copy(marker.rotation);
             frameMesh.position.z += 0.1;
@@ -219,7 +228,7 @@ export default function ExhibitionGallery() {
         mountRef.current.removeChild(renderer.domElement);
       }
     };
-  }, [exhibition]); 
+  }, [exhibition]);
 
   return (
     <div className="canvasScene relative h-screen w-screen">
@@ -259,7 +268,7 @@ export default function ExhibitionGallery() {
           onClick={() => router.back()}
           className="fixed top-4 right-4 z-50 p-2 bg-white rounded-full shadow-lg hover:bg-gray-100 transition-colors"
         >
-          <CrossIcon/>
+          <CrossIcon />
         </button>
       )}
 
